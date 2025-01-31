@@ -115,11 +115,10 @@ public class Categorizing extends Normalizing {
 
     protected char[] decimalDigit(final int codepoint) {
         final int value = Character.getNumericValue(codepoint);
-        if (value >= 0) {
-            return ASCII['0' + Character.getNumericValue(codepoint)];
-        } else {
-            return NOTHING;
+        if (value >= 0 && value <= 9) {
+            return ASCII['0' + value];
         }
+        return NOTHING;
     }
 
     protected char[] spaceSeparator(@SuppressWarnings("unused") final int codepoint) {
