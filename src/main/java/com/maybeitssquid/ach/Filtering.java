@@ -3,7 +3,7 @@ package com.maybeitssquid.ach;
 import java.util.function.IntFunction;
 
 /**
- * Function to allow only characters that are in the ASCII subset of Unicode. The input is a Unicode code point,  and
+ * Function to allow only characters that are in the ASCII subset of Unicode. The input is a Unicode code point, and
  * the default output is either an array with a single character corresponding to the code point or an empty array
  * if the code point is not in the ASCII range. Encodings for specific ASCII values can be overridden by the
  * {@code encode} functions.
@@ -22,9 +22,10 @@ public class Filtering implements IntFunction<char[]> {
     @SuppressWarnings("UnusedReturnValue")
     public Filtering encode(final int codepoint, final char as) {
         if (codepoint >= 0x80) {
-            throw new IllegalArgumentException("Requested encoding of " + codepoint + ", which exceeds 0x80");
+            throw new IllegalArgumentException("Requested encoding of " + codepoint +
+                    ", which exceeds 0x80 so outside ASCII range");
         } else {
-            this.ASCII[codepoint] = new char[] {as};
+            this.ASCII[codepoint] = new char[]{as};
         }
         return this;
     }
@@ -32,21 +33,23 @@ public class Filtering implements IntFunction<char[]> {
     @SuppressWarnings("UnusedReturnValue")
     public Filtering encode(final int codepoint, final char[] as) {
         if (codepoint >= 0x80) {
-            throw new IllegalArgumentException("Requested encoding of " + codepoint + ", which exceeds 0x80");
+            throw new IllegalArgumentException("Requested encoding of " + codepoint +
+                    ", which exceeds 0x80 so outside ASCII range");
         } else {
-            this.ASCII[codepoint] = as;
+            this.ASCII[codepoint] = as == null ? NOTHING : as;
         }
         return this;
     }
 
     @SuppressWarnings("UnusedReturnValue")
     public Filtering encode(final int codepoint, final String as) {
-        return encode(codepoint, as.toCharArray());
+        return encode(codepoint, as == null ? NOTHING: as.toCharArray());
     }
 
     public Filtering block(final int codepoint) {
         if (codepoint >= 0x80) {
-            throw new IllegalArgumentException("Requested blocking of " + codepoint + ", which exceeds 0x80");
+            throw new IllegalArgumentException("Requested blocking of " + codepoint +
+                    ", which exceeds 0x80 so outside ASCII range");
         } else {
             this.ASCII[codepoint] = NOTHING;
         }
