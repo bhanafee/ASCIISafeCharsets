@@ -2,46 +2,86 @@ package com.maybeitssquid.ach;
 
 import static java.lang.Character.*;
 
+
+/**
+ * A text normalization class that converts Unicode characters to their ASCII equivalents based on character categories.
+ * Extends {@link Normalizing} to provide category-based character mapping functionality.
+ *
+ * <p>This class processes Unicode codepoints by their character categories (uppercase, lowercase,
+ * punctuation, symbols, etc.) and maps them to simplified ASCII representations. For example:
+ * <ul>
+ *   <li>Various Unicode spaces are converted to ASCII space</li>
+ *   <li>Different forms of quotes are normalized to ASCII quote marks</li>
+ *   <li>Unicode dashes and hyphens are converted to ASCII hyphen-minus</li>
+ *   <li>Unicode digits are converted to ASCII digits</li>
+ *   <li>Line and paragraph separators are converted to system-specific line breaks</li>
+ * </ul>
+ * </p>
+ */
 public class Categorizing extends Normalizing {
 
     private static final int UNICODE_NEL = 0x0085;
 
     public static final char UNICODE_REPLACEMENT = '\uFFFD';
 
+    /**
+     * Creates a new instance of the Categorizing normalizer.
+     */
     public Categorizing() {
         super();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Categorizing encode(final int codepoint, final char as) {
         super.encode(codepoint, as);
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Categorizing encode(final int codepoint, final char[] as) {
         super.encode(codepoint, as);
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Categorizing encode(final int codepoint, final String as) {
         super.encode(codepoint, as);
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Categorizing block(final int codepoint) {
         super.block(codepoint);
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Categorizing blockControls() {
         super.blockControls();
         return this;
     }
 
+    /**
+     * Returns the system-specific line separator as a character array.
+     *
+     * @return A character array containing the platform's line separator
+     * @see System#lineSeparator()
+     */
     public char[] newLine() {
         return System.lineSeparator().toCharArray();
     }
@@ -173,3 +213,4 @@ public class Categorizing extends Normalizing {
         return ASCII['"'];
     }
 }
+
