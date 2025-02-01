@@ -34,17 +34,22 @@ public class Filtering implements IntFunction<char[]> {
     public static final char[] NOTHING = new char[0];
 
     /**
+     * Maximum codepoint value for the ASCII character set.
+     */
+    public static final int ASCII_BOUNDARY = 0x80;
+
+    /**
      * Internal array storing character mappings for ASCII range (0x00-0x7F).
      * Each index corresponds to an ASCII code point, containing its mapped output.
      */
-    protected final char[][] ASCII = new char[0x80][];
+    protected final char[][] ASCII = new char[ASCII_BOUNDARY][];
 
     /**
      * Creates a new Filtering instance with default one-to-one ASCII mappings.
      * All characters initially map to themselves within the ASCII range.
      */
     public Filtering() {
-        for (char cp = 0; cp < 0x80; cp++) {
+        for (char cp = 0; cp < ASCII_BOUNDARY; cp++) {
             ASCII[cp] = new char[]{cp};
         }
     }
@@ -52,16 +57,16 @@ public class Filtering implements IntFunction<char[]> {
     /**
      * Maps a specific ASCII code point to a single character.
      *
-     * @param codepoint The ASCII code point to map (must be < 0x80)
+     * @param codepoint The ASCII code point to map (must be < {@link #ASCII_BOUNDARY}).
      * @param as        The character to map it to
      * @return this instance for method chaining
-     * @throws IllegalArgumentException if codepoint is >= 0x80
+     * @throws IllegalArgumentException if codepoint is >= {@link #ASCII_BOUNDARY}
      */
     @SuppressWarnings("UnusedReturnValue")
     public Filtering encode(final int codepoint, final char as) {
-        if (codepoint >= 0x80) {
+        if (codepoint >= ASCII_BOUNDARY) {
             throw new IllegalArgumentException("Requested encoding of " + codepoint +
-                    ", which exceeds 0x80 so outside ASCII range");
+                    ", which exceeds ASCII range");
         } else {
             this.ASCII[codepoint] = new char[]{as};
         }
@@ -71,16 +76,16 @@ public class Filtering implements IntFunction<char[]> {
     /**
      * Maps a specific ASCII code point to a sequence of characters.
      *
-     * @param codepoint The ASCII code point to map (must be < 0x80)
+     * @param codepoint The ASCII code point to map (must be < {@link #ASCII_BOUNDARY})
      * @param as        The character sequence to map it to, or null to block
      * @return this instance for method chaining
-     * @throws IllegalArgumentException if codepoint is >= 0x80
+     * @throws IllegalArgumentException if codepoint is >= {@link #ASCII_BOUNDARY}
      */
     @SuppressWarnings("UnusedReturnValue")
     public Filtering encode(final int codepoint, final char[] as) {
-        if (codepoint >= 0x80) {
+        if (codepoint >= ASCII_BOUNDARY) {
             throw new IllegalArgumentException("Requested encoding of " + codepoint +
-                    ", which exceeds 0x80 so outside ASCII range");
+                    ", which exceeds ASCII range");
         } else {
             this.ASCII[codepoint] = as == null ? NOTHING : as;
         }
@@ -90,10 +95,10 @@ public class Filtering implements IntFunction<char[]> {
     /**
      * Configures mapping a specific ASCII code point to a string representation.
      *
-     * @param codepoint The ASCII code point to map (must be < 0x80)
+     * @param codepoint The ASCII code point to map (must be < {@link #ASCII_BOUNDARY})
      * @param as        The string to map it to, or null to block
      * @return this instance for method chaining
-     * @throws IllegalArgumentException if codepoint is >= 0x80
+     * @throws IllegalArgumentException if codepoint is >= {@link #ASCII_BOUNDARY}
      */
     @SuppressWarnings("UnusedReturnValue")
     public Filtering encode(final int codepoint, final String as) {
@@ -103,14 +108,14 @@ public class Filtering implements IntFunction<char[]> {
     /**
      * Configures blocking a specific ASCII code point from output.
      *
-     * @param codepoint The ASCII code point to block (must be < 0x80)
+     * @param codepoint The ASCII code point to block (must be < {@link #ASCII_BOUNDARY})
      * @return this instance for method chaining
-     * @throws IllegalArgumentException if codepoint is >= 0x80
+     * @throws IllegalArgumentException if codepoint is >= {@link #ASCII_BOUNDARY}
      */
     public Filtering block(final int codepoint) {
-        if (codepoint >= 0x80) {
+        if (codepoint >= ASCII_BOUNDARY) {
             throw new IllegalArgumentException("Requested blocking of " + codepoint +
-                    ", which exceeds 0x80 so outside ASCII range");
+                    ", which exceeds ASCII range");
         } else {
             this.ASCII[codepoint] = NOTHING;
         }
@@ -141,6 +146,6 @@ public class Filtering implements IntFunction<char[]> {
      */
     @Override
     public char[] apply(final int value) {
-        return value < 0x80 ? ASCII[value] : NOTHING;
+        return value < ASCII_BOUNDARY ? ASCII[value] : NOTHING;
     }
 }

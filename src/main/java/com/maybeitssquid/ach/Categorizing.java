@@ -88,7 +88,7 @@ public class Categorizing extends Normalizing {
 
     @Override
     protected char[] dispatch(final int codepoint) {
-        if (codepoint < 0x80) {
+        if (codepoint < ASCII_BOUNDARY) {
             return ASCII[codepoint];
         } else {
             switch (Character.getType(codepoint)) {
@@ -134,7 +134,7 @@ public class Categorizing extends Normalizing {
     }
 
     protected char[] uppercase(@SuppressWarnings("unused") final int codepoint) {
-        if (codepoint < 0x80 && Character.isUpperCase(codepoint)) {
+        if (codepoint < ASCII_BOUNDARY && Character.isUpperCase(codepoint)) {
             return ASCII[codepoint];
         } else {
             return NOTHING;
@@ -142,7 +142,7 @@ public class Categorizing extends Normalizing {
     }
 
     protected char[] lowercase(@SuppressWarnings("unused") final int codepoint) {
-        if (codepoint < 0x80 && Character.isLowerCase(codepoint)) {
+        if (codepoint < ASCII_BOUNDARY && Character.isLowerCase(codepoint)) {
             return ASCII[codepoint];
         } else {
             return NOTHING;

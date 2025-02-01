@@ -30,7 +30,6 @@ import java.util.Map;
  */
 public class Normalizing extends Filtering {
     private static final int NORMALIZATION_BUFFER_SIZE = 20;
-    private static final int ASCII_BOUNDARY = 0x80;
 
     private final Map<Integer, char[]> encodings = new HashMap<>();
 
