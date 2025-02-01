@@ -4,7 +4,29 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Function to convert a Unicode codepoint into a char[], where all the characters are in the ASCII range 0x00 to 0x7F.
+ * Converts Unicode characters to their ASCII equivalents for text normalization.
+ *
+ * <p>This class provides functionality to convert Unicode codepoints into ASCII-compatible
+ * characters (range 0x00 to 0x7F). It handles various types of conversions including:
+ *
+ * <ul>
+ *   <li>Latin letters to basic A-Z equivalents
+ *   <li>Special symbols to ASCII symbols (e.g. "½" to "1/2")
+ *   <li>Punctuation marks to their ASCII counterparts
+ *   <li>Mathematical symbols to basic ASCII representations
+ *   <li>Quote marks to standard ASCII quotes
+ * </ul>
+ *
+ * <p>Usage example:
+ * <pre>
+ * Naming converter = new Naming();
+ * char[] result = converter.encode(0x00BD); // Converts "½" to "1/2"
+ * </pre>
+ *
+ * <p>The class extends {@link Categorizing} and provides fluent interface methods
+ * for character encoding and blocking operations.
+ *
+ * @see Categorizing
  */
 public class Naming extends Categorizing {
 
@@ -80,30 +102,45 @@ public class Naming extends Categorizing {
         encode(0xAB67, "tx");
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Naming encode(final int codepoint, final char as) {
         super.encode(codepoint, as);
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Naming encode(final int codepoint, final char[] as) {
         super.encode(codepoint, as);
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Naming encode(final int codepoint, final String as) {
         super.encode(codepoint, as);
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Categorizing block(final int codepoint) {
         super.block(codepoint);
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Naming blockControls() {
         super.blockControls();

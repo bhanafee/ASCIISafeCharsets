@@ -2,7 +2,6 @@ package com.maybeitssquid.ach;
 
 import static java.lang.Character.*;
 
-
 /**
  * A text normalization class that converts Unicode characters to their ASCII equivalents based on character categories.
  * Extends {@link Normalizing} to provide category-based character mapping functionality.
