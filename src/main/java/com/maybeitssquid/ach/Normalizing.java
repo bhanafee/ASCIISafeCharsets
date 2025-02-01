@@ -29,6 +29,8 @@ import java.util.Map;
  * @see java.text.Normalizer.Form
  */
 public class Normalizing extends Filtering {
+    private static final int NORMALIZATION_BUFFER_SIZE = 20;
+    private static final int ASCII_BOUNDARY = 0x80;
 
     private final Map<Integer, char[]> encodings = new HashMap<>();
 
@@ -64,14 +66,14 @@ public class Normalizing extends Filtering {
      * Maps a Unicode codepoint to a single ASCII character.
      *
      * @param codepoint the Unicode codepoint to encode
-     * @param as the ASCII character to map to
-     * @return this instance for method chaining
+     * @param as        the ASCII character to map to
+     * @return {@inheritDoc}
      */
     @Override
     public Normalizing encode(final int codepoint, final char as) {
-        if (codepoint <= 0x0080) {
+        if (codepoint <= ASCII_BOUNDARY) {
             super.encode(codepoint, as);
-        } else if (as <= 0x0080) {
+        } else if (as <= ASCII_BOUNDARY) {
             encodings.put(codepoint, ASCII[as]);
         } else {
             encodings.put(codepoint, new char[]{as});
@@ -83,12 +85,12 @@ public class Normalizing extends Filtering {
      * Maps a Unicode codepoint to a sequence of ASCII characters.
      *
      * @param codepoint the Unicode codepoint to encode
-     * @param as the array of ASCII characters to map to
-     * @return this instance for method chaining
+     * @param as        {@inheritDoc}
+     * @return {@inheritDoc}
      */
     @Override
     public Normalizing encode(final int codepoint, final char[] as) {
-        if (codepoint <= 0x0080) {
+        if (codepoint <= ASCII_BOUNDARY) {
             super.encode(codepoint, as);
         } else {
             encodings.put(codepoint, as);
@@ -96,6 +98,13 @@ public class Normalizing extends Filtering {
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @param codepoint {@inheritDoc}
+     * @param as        {@inheritDoc}
+     * @return {@inheritDoc}
+     */
     @Override
     public Normalizing encode(final int codepoint, final String as) {
         super.encode(codepoint, as);
@@ -106,11 +115,11 @@ public class Normalizing extends Filtering {
      * Blocks a specific Unicode codepoint from being converted.
      *
      * @param codepoint the Unicode codepoint to block
-     * @return this instance for method chaining
+     * @return {@inheritDoc}
      */
     @Override
     public Normalizing block(final int codepoint) {
-        if (codepoint > 0x0080) {
+        if (codepoint > ASCII_BOUNDARY) {
             encodings.remove(codepoint);
         } else {
             super.block(codepoint);
@@ -126,13 +135,13 @@ public class Normalizing extends Filtering {
      */
     @Override
     public char[] apply(final int value) {
-        if (value < 0x80) {
+        if (value < ASCII_BOUNDARY) {
             return ASCII[value];
         } else if (this.encodings.containsKey(value)) {
             return this.encodings.get(value);
         } else {
             final String normalized = Normalizer.normalize(Character.toString(value), this.form);
-            final CharBuffer buffer = CharBuffer.allocate(20);
+            final CharBuffer buffer = CharBuffer.allocate(NORMALIZATION_BUFFER_SIZE);
             normalized.codePoints().forEach(i -> buffer.put(dispatch(i)));
             final char[] result;
             switch (buffer.position()) {
@@ -152,8 +161,16 @@ public class Normalizing extends Filtering {
         }
     }
 
+    /**
+     * Converts a single codepoint to its ASCII representation. For ASCII codepoints (below 0x80), returns the
+     * corresponding ASCII character. For non-ASCII codepoints, returns an empty character array. This method
+     * should be overridden to add custom strategies for handling non-ASCII codepoints.
+     *
+     * @param codepoint the Unicode codepoint to convert
+     * @return char[] containing either the ASCII representation or an empty array
+     */
     protected char[] dispatch(final int codepoint) {
-        if (codepoint < 0x80) {
+        if (codepoint < ASCII_BOUNDARY) {
             return ASCII[codepoint];
         } else {
             return NOTHING;
