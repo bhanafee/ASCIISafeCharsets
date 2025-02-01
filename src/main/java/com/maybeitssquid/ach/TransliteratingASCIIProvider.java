@@ -7,20 +7,21 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Provider for preconfigured versions of {@link TransliteratingASCII}:
+ * A {@link CharsetProvider} that supplies specialized ASCII character sets for ACH (Automated Clearing House) file
+ * processing. This provider offers four distinct character set implementations:
  *
  * <dl>
  *     <dt>X-ACH-Filter</dt>
  *     <dd>A strict interpretation of characters valid for ACH files. Allows for 0x20 through 0x7E, inclusive.
  *     Control characters, including newlines, are reported as unmappable.</dd>
  *     <dt>X-ACH-Newlines</dt>
- *     <dd>Allows the same characters as {@code X-ACH-Filter} and also allows linefeed {@code 0x0A} and carriage
- *     return {@code 0x0D}.</dd>
+ *     <dd>Extended ASCII character set that includes linefeed (0x0A) and carriage return (0x0D) characters,
+ *      while maintaining the base ACH character restrictions.</dd>
  *     <dt>X-ACH-Aggressive</dt>
- *     <dd>Decodes the same characters as {@code X-ACH-Newlines} and encodes the same characters with aggressive
- *     transliteration using {@link Naming}.</dd>
+ *     <dd>Enhanced character set that combines X-ACH-Newlines capabilities with aggressive character transliteration,
+ *      converting non-ASCII characters to their closest ASCII equivalents.</dd>
  *     <dt>X-US-ASCII-Transliterating</dt>
- *     <dd>Decodes as plain US-ASCII and encodes with aggressive transliteration using {@link Naming}.</dd>
+ *     <dd>Standard US-ASCII decoder with aggressive character transliteration for encoding operations.</dd>
  * </dl>
  */
 public class TransliteratingASCIIProvider extends CharsetProvider {
@@ -32,11 +33,12 @@ public class TransliteratingASCIIProvider extends CharsetProvider {
     private Charset achAggressive;
 
     private Charset usAsciiAggressive;
+    private List<Charset> charsets;
 
     private Charset getACHFilter() {
         if (achFilter == null) {
             Filtering transliterator = new Filtering().blockControls();
-            achFilter = new TransliteratingASCII("X-ACH", new String[] {"ACH"}, transliterator);
+            achFilter = new TransliteratingASCII("X-ACH", new String[]{"ACH"}, transliterator);
         }
         return achFilter;
     }
@@ -69,8 +71,14 @@ public class TransliteratingASCIIProvider extends CharsetProvider {
         return usAsciiAggressive;
     }
 
-    private List<Charset> charsets;
-
+    /**
+     * Returns an iterator over all available character sets provided by this class.
+     * The available charsets are: X-ACH-Filter, X-ACH-Newlines, X-ACH-Aggressive,
+     * and X-US-ASCII-Transliterating.
+     *
+     * @return Iterator<Charset> containing all supported character sets
+     * {@code @ThreadSafe} This method is thread-safe and uses lazy initialization
+     */
     @Override
     public Iterator<Charset> charsets() {
         synchronized (this) {
@@ -81,14 +89,26 @@ public class TransliteratingASCIIProvider extends CharsetProvider {
         return charsets.iterator();
     }
 
+    /**
+     * Retrieves a specific character set by name. Supported charset names are:
+     * "ACH", "X-ACH", "X-ACH-Newlines", "X-ACH-Aggressive", and "X-US-ASCII-Transliterating".
+     *
+     * @param charsetName the name of the requested charset
+     * @return the corresponding Charset object, or null if the requested charset is not supported
+     * {@code @ThreadSafe} This method is thread-safe
+     */
     @Override
     public Charset charsetForName(String charsetName) {
         switch (charsetName) {
             case "ACH":
-            case "X-ACH": return getACHFilter();
-            case "X-ACH-Newlines": return getACHNewlines();
-            case "X-ACH-Aggressive": return getACHAggressive();
-            case "X-US-ASCII-Transliterating": return getUSASCIIAggressive();
+            case "X-ACH":
+                return getACHFilter();
+            case "X-ACH-Newlines":
+                return getACHNewlines();
+            case "X-ACH-Aggressive":
+                return getACHAggressive();
+            case "X-US-ASCII-Transliterating":
+                return getUSASCIIAggressive();
         }
         return null;
     }
