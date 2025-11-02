@@ -4,7 +4,7 @@ import java.util.function.IntFunction;
 
 /**
  * Function to allow only characters that are in the ASCII subset of Unicode. This class implements
- * IntFunction<char[]> to transform input characters according to configurable rules.The input is a Unicode code point,
+ * IntFunction<char[]> to transform input characters according to configurable rules. The input is a Unicode code point,
  * and the default output is either an array with a single character corresponding to the code point or an empty array
  * if the code point is not in the ASCII range. Encodings for specific ASCII values can be overridden by the
  * {@code encode} functions.

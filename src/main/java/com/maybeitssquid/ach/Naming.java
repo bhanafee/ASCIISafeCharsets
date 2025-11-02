@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
  * Converts Unicode characters to their ASCII equivalents for text normalization.
  *
  * <p>This class provides functionality to convert Unicode codepoints into ASCII-compatible
- * characters (range 0x00 to 0x7F). It handles various types of conversions including:
+ * characters (range 0x00 to 0x7F). It handles various types of conversion, including:
  *
  * <ul>
  *   <li>Latin letters to basic A-Z equivalents

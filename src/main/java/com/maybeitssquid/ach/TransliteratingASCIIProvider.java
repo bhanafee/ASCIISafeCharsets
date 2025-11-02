@@ -11,7 +11,7 @@ import java.util.List;
  * processing. This provider offers four distinct character set implementations:
  *
  * <dl>
- *     <dt>X-ACH-Filter</dt>
+ *     <dt>X-ACH</dt>
  *     <dd>A strict interpretation of characters valid for ACH files. Allows for 0x20 through 0x7E, inclusive.
  *     Control characters, including newlines, are reported as unmappable.</dd>
  *     <dt>X-ACH-Newlines</dt>
