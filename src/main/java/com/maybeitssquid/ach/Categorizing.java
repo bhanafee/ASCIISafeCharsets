@@ -15,12 +15,13 @@ import static java.lang.Character.*;
  *   <li>Unicode digits are converted to ASCII digits</li>
  *   <li>Line and paragraph separators are converted to system-specific line breaks</li>
  * </ul>
- * </p>
  */
 public class Categorizing extends Normalizing {
 
+    /** The UNICODE line separator character */
     private static final int UNICODE_NEL = 0x0085;
 
+    /** The UNICODE replacement character */
     public static final char UNICODE_REPLACEMENT = '\uFFFD';
 
     /**

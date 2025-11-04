@@ -4,28 +4,28 @@ import java.util.function.IntFunction;
 
 /**
  * Function to allow only characters that are in the ASCII subset of Unicode. This class implements
- * IntFunction<char[]> to transform input characters according to configurable rules. The input is a Unicode code point,
- * and the default output is either an array with a single character corresponding to the code point or an empty array
- * if the code point is not in the ASCII range. Encodings for specific ASCII values can be overridden by the
- * {@code encode} functions.
+ * {@code IntFunction<char[]>} to transform input characters according to configurable rules. The input is a Unicode
+ * code point, and the default output is either an array with a single character corresponding to the code point or
+ * an empty array if the code point is not in the ASCII range. Encodings for specific ASCII values can be overridden
+ * by the {@code encode} functions.
  *
  * <p>Key features:
  * <ul>
  *   <li>Filters non-ASCII characters (above 0x7F)
- *   <li>Allows custom character mappings within ASCII range
+ *   <li>Allows custom character mappings within an ASCII range
  *   <li>Provides blocking capabilities for specific characters
- *   <li>Includes utility method to block all control characters
+ *   <li>Includes a utility method to block all control characters
  * </ul>
  *
- * <p>Usage example:
- * <pre>
+ * Usage example:
+ * {@snippet :
  * Filtering filter = new Filtering()
  *     .blockControls()           // Block all control characters
  *     .encode(0x40, 'X')        // Replace '@' with 'X'
  *     .block(0x24);             // Block '$' character
  *
  * char[] result = filter.apply(inputCodePoint);
- * </pre>
+ * }
  */
 public class Filtering implements IntFunction<char[]> {
     /**
@@ -57,10 +57,10 @@ public class Filtering implements IntFunction<char[]> {
     /**
      * Maps a specific ASCII code point to a single character.
      *
-     * @param codepoint The ASCII code point to map (must be < {@link #ASCII_BOUNDARY}).
+     * @param codepoint The ASCII code point to map (must be &lt; {@link #ASCII_BOUNDARY}).
      * @param as        The character to map it to
      * @return this instance for method chaining
-     * @throws IllegalArgumentException if codepoint is >= {@link #ASCII_BOUNDARY}
+     * @throws IllegalArgumentException if codepoint is &gt;= {@link #ASCII_BOUNDARY}
      */
     @SuppressWarnings("UnusedReturnValue")
     public Filtering encode(final int codepoint, final char as) {
@@ -76,10 +76,10 @@ public class Filtering implements IntFunction<char[]> {
     /**
      * Maps a specific ASCII code point to a sequence of characters.
      *
-     * @param codepoint The ASCII code point to map (must be < {@link #ASCII_BOUNDARY})
+     * @param codepoint The ASCII code point to map (must be &lt; {@link #ASCII_BOUNDARY})
      * @param as        The character sequence to map it to, or null to block
      * @return this instance for method chaining
-     * @throws IllegalArgumentException if codepoint is >= {@link #ASCII_BOUNDARY}
+     * @throws IllegalArgumentException if codepoint is &gt;= {@link #ASCII_BOUNDARY}
      */
     @SuppressWarnings("UnusedReturnValue")
     public Filtering encode(final int codepoint, final char[] as) {
@@ -95,10 +95,10 @@ public class Filtering implements IntFunction<char[]> {
     /**
      * Configures mapping a specific ASCII code point to a string representation.
      *
-     * @param codepoint The ASCII code point to map (must be < {@link #ASCII_BOUNDARY})
+     * @param codepoint The ASCII code point to map (must be &lt; {@link #ASCII_BOUNDARY})
      * @param as        The string to map it to, or null to block
      * @return this instance for method chaining
-     * @throws IllegalArgumentException if codepoint is >= {@link #ASCII_BOUNDARY}
+     * @throws IllegalArgumentException if codepoint is &gt;= {@link #ASCII_BOUNDARY}
      */
     @SuppressWarnings("UnusedReturnValue")
     public Filtering encode(final int codepoint, final String as) {
@@ -108,9 +108,9 @@ public class Filtering implements IntFunction<char[]> {
     /**
      * Configures blocking a specific ASCII code point from output.
      *
-     * @param codepoint The ASCII code point to block (must be < {@link #ASCII_BOUNDARY})
+     * @param codepoint The ASCII code point to block (must be &lt; {@link #ASCII_BOUNDARY})
      * @return this instance for method chaining
-     * @throws IllegalArgumentException if codepoint is >= {@link #ASCII_BOUNDARY}
+     * @throws IllegalArgumentException if codepoint is &gt;= {@link #ASCII_BOUNDARY}
      */
     public Filtering block(final int codepoint) {
         if (codepoint >= ASCII_BOUNDARY) {
