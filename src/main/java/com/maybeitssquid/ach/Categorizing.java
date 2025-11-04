@@ -91,45 +91,26 @@ public class Categorizing extends Normalizing {
         if (codepoint < ASCII_BOUNDARY) {
             return ASCII[codepoint];
         } else {
-            switch (Character.getType(codepoint)) {
-                case UPPERCASE_LETTER:
-                    return uppercase(codepoint);
-                case LOWERCASE_LETTER:
-                    return lowercase(codepoint);
-                case MODIFIER_LETTER:
-                    return modifierLetter(codepoint);
-                case DECIMAL_DIGIT_NUMBER:
-                    return decimalDigit(codepoint);
-                case SPACE_SEPARATOR:
-                    return spaceSeparator(codepoint);
-                case LINE_SEPARATOR:
-                    return lineSeparator(codepoint);
-                case PARAGRAPH_SEPARATOR:
-                    return paragraphSeparator(codepoint);
-                case CONTROL:
-                    return control(codepoint);
-                case DASH_PUNCTUATION:
-                    return dashPunctuation(codepoint);
-                case START_PUNCTUATION:
-                    return startPunctuation(codepoint);
-                case END_PUNCTUATION:
-                    return endPunctuation(codepoint);
-                case CONNECTOR_PUNCTUATION:
-                    return connectorPunctuation(codepoint);
-                case OTHER_PUNCTUATION:
-                    return otherPunctuation(codepoint);
-                case MATH_SYMBOL:
-                    return mathSymbol(codepoint);
-                case MODIFIER_SYMBOL:
-                    return modifierSymbol(codepoint);
-                case OTHER_SYMBOL:
-                    return otherSymbol(codepoint);
-                case INITIAL_QUOTE_PUNCTUATION:
-                case FINAL_QUOTE_PUNCTUATION:
-                    return quotePunctuation(codepoint);
-                default:
-                    return NOTHING;
-            }
+            return switch (Character.getType(codepoint)) {
+                case UPPERCASE_LETTER -> uppercase(codepoint);
+                case LOWERCASE_LETTER -> lowercase(codepoint);
+                case MODIFIER_LETTER -> modifierLetter(codepoint);
+                case DECIMAL_DIGIT_NUMBER -> decimalDigit(codepoint);
+                case SPACE_SEPARATOR -> spaceSeparator(codepoint);
+                case LINE_SEPARATOR -> lineSeparator(codepoint);
+                case PARAGRAPH_SEPARATOR -> paragraphSeparator(codepoint);
+                case CONTROL -> control(codepoint);
+                case DASH_PUNCTUATION -> dashPunctuation(codepoint);
+                case START_PUNCTUATION -> startPunctuation(codepoint);
+                case END_PUNCTUATION -> endPunctuation(codepoint);
+                case CONNECTOR_PUNCTUATION -> connectorPunctuation(codepoint);
+                case OTHER_PUNCTUATION -> otherPunctuation(codepoint);
+                case MATH_SYMBOL -> mathSymbol(codepoint);
+                case MODIFIER_SYMBOL -> modifierSymbol(codepoint);
+                case OTHER_SYMBOL -> otherSymbol(codepoint);
+                case INITIAL_QUOTE_PUNCTUATION, FINAL_QUOTE_PUNCTUATION -> quotePunctuation(codepoint);
+                default -> NOTHING;
+            };
         }
     }
 

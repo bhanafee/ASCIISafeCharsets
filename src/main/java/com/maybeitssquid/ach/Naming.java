@@ -17,11 +17,11 @@ import java.util.regex.Pattern;
  *   <li>Quote marks to standard ASCII quotes
  * </ul>
  *
- * <p>Usage example:
- * <pre>
+ * Usage example:
+ * {@snippet :
  * Naming converter = new Naming();
  * char[] result = converter.encode(0x00BD); // Converts "½" to "1/2"
- * </pre>
+ * }
  *
  * <p>The class extends {@link Categorizing} and provides fluent interface methods
  * for character encoding and blocking operations.
@@ -192,26 +192,20 @@ public class Naming extends Categorizing {
 
     protected char[] uppercase(final int codepoint) {
         final String letter = letter(codepoint);
-        switch (letter.length()) {
-            case 0:
-                return NOTHING;
-            case 1:
-                return ASCII[letter.charAt(0)];
-            default:
-                return letter.toCharArray();
-        }
+        return switch (letter.length()) {
+            case 0 -> NOTHING;
+            case 1 -> ASCII[letter.charAt(0)];
+            default -> letter.toCharArray();
+        };
     }
 
     protected char[] lowercase(final int codepoint) {
         final String letter = letter(codepoint);
-        switch (letter.length()) {
-            case 0:
-                return NOTHING;
-            case 1:
-                return ASCII[Character.toLowerCase(letter.charAt(0))];
-            default:
-                return letter.toLowerCase().toCharArray();
-        }
+        return switch (letter.length()) {
+            case 0 -> NOTHING;
+            case 1 -> ASCII[Character.toLowerCase(letter.charAt(0))];
+            default -> letter.toLowerCase().toCharArray();
+        };
     }
 
     protected char[] modifierLetter(final int codepoint) {

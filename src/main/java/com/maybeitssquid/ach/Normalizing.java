@@ -18,12 +18,12 @@ import java.util.Map;
  *   <li>Cache normalized character mappings for improved performance</li>
  * </ul>
  *
- * <p>Example usage:
- * <pre>
+ * Usage example:
+ * {@snippet :
  * Normalizing normalizer = new Normalizing();
  * normalizer.encode(0x00E9, 'e');  // Map é to e
  * char[] result = normalizer.apply(0x00E9);
- * </pre>
+ * }
  *
  * @see java.text.Normalizer
  * @see java.text.Normalizer.Form
@@ -45,7 +45,7 @@ public class Normalizing extends Filtering {
     }
 
     /**
-     * Creates a new Normalizing instance using the default NFKD normalization form.
+     * Creates a new Normalizing instance using the default {@code NFKD} normalization form.
      */
     public Normalizing() {
         this(Normalizer.Form.NFKD);
@@ -56,7 +56,6 @@ public class Normalizing extends Filtering {
      *
      * @return the current {@link Normalizer.Form}
      */
-    @SuppressWarnings("unused")
     public Normalizer.Form getForm() {
         return form;
     }

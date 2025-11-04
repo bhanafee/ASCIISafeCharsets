@@ -11,7 +11,7 @@ import java.util.List;
  * processing. This provider offers four distinct character set implementations:
  *
  * <dl>
- *     <dt>X-ACH</dt>
+ *     <dt>ACH, X-ACH</dt>
  *     <dd>A strict interpretation of characters valid for ACH files. Allows for 0x20 through 0x7E, inclusive.
  *     Control characters, including newlines, are reported as unmappable.</dd>
  *     <dt>X-ACH-Newlines</dt>
@@ -99,17 +99,12 @@ public class TransliteratingASCIIProvider extends CharsetProvider {
      */
     @Override
     public Charset charsetForName(String charsetName) {
-        switch (charsetName) {
-            case "ACH":
-            case "X-ACH":
-                return getACHFilter();
-            case "X-ACH-Newlines":
-                return getACHNewlines();
-            case "X-ACH-Aggressive":
-                return getACHAggressive();
-            case "X-US-ASCII-Transliterating":
-                return getUSASCIIAggressive();
-        }
-        return null;
+        return switch (charsetName) {
+            case "ACH", "X-ACH" -> getACHFilter();
+            case "X-ACH-Newlines" -> getACHNewlines();
+            case "X-ACH-Aggressive" -> getACHAggressive();
+            case "X-US-ASCII-Transliterating" -> getUSASCIIAggressive();
+            default -> null;
+        };
     }
 }
