@@ -32,6 +32,23 @@ public class Naming extends Categorizing {
 
     private static final Pattern latin = Pattern.compile("LATIN (SMALL |CAPITAL )?LETTER ([A-Z]+ )*(?<letter>\\p{Upper}\\p{Upper}?)\\b");
 
+    /**
+     * Constructs a new Naming converter with predefined Unicode-to-ASCII mappings.
+     *
+     * <p>The constructor initializes a comprehensive set of character encodings that convert
+     * Unicode codepoints to their ASCII equivalents. This includes:
+     *
+     * <ul>
+     *   <li>Fraction symbols (¼, ½, ¾) to their ASCII representations
+     *   <li>Mathematical operators (×, ÷) to basic ASCII operators
+     *   <li>Extended Latin letters to their base ASCII equivalents
+     *   <li>Various punctuation marks and quotation symbols to standard ASCII punctuation
+     *   <li>Special symbols and diacritical marks to their closest ASCII representations
+     * </ul>
+     *
+     * <p>After construction, additional mappings can be added using the fluent
+     * {@link #encode(int, char)} and related methods.
+     */
     public Naming() {
         encode(0x00B4, "");
         encode(0x00B7, '.');
@@ -147,6 +164,37 @@ public class Naming extends Categorizing {
         return this;
     }
 
+    /**
+     * Converts a Unicode codepoint to ASCII by analyzing its character name.
+     *
+     * <p>This method uses {@link Character#getName(int)} to retrieve the Unicode character
+     * name and matches it against known patterns to determine the appropriate ASCII
+     * equivalent. It handles common punctuation marks and symbols by checking if their
+     * names contain specific keywords.
+     *
+     * <p>Recognized patterns include:
+     * <ul>
+     *   <li>EXCLAMATION MARK → {@code !}
+     *   <li>QUESTION MARK → {@code ?}
+     *   <li>SEMICOLON → {@code ;}
+     *   <li>COMMA → {@code ,}
+     *   <li>COLON → {@code :}
+     *   <li>TILDE → {@code ~}
+     *   <li>PLUS SIGN → {@code +}
+     *   <li>EQUALS SIGN → {@code =}
+     *   <li>REVERSE SOLIDUS → {@code \}
+     *   <li>SOLIDUS → {@code /}
+     *   <li>ASTERISK → {@code *}
+     *   <li>PERCENT SIGN → {@code %}
+     *   <li>AMPERSAND → {@code &}
+     *   <li>FULL STOP → {@code .}
+     *   <li>APOSTROPHE → {@code '}
+     * </ul>
+     *
+     * @param codepoint the Unicode codepoint to convert
+     * @return a character array containing the ASCII equivalent, or an empty array
+     *         if no matching pattern is found
+     */
     protected char[] byName(final int codepoint) {
         final String name = Character.getName(codepoint);
         if (name.contains("EXCLAMATION MARK")) {
