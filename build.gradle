@@ -24,19 +24,17 @@ compileJava {
 }
 
 testing {
-    suites {
-        test {
-            useJUnitJupiter()
-        }
+    suites.test {
+        useJUnitJupiter()
     }
 }
 
 publishing {
     publications {
-        mavenJava(MavenPublication) {
-            groupId = "$group"
-            artifactId = "achcharset"
-            version = "$version"
+        create('mavenJava', MavenPublication) {
+            groupId = group
+            artifactId = "retry"
+            version = version
             artifact jar
             artifact sourcesJar
             artifact javadocJar
