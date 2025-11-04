@@ -33,7 +33,18 @@ public class TransliteratingASCIIProvider extends CharsetProvider {
     private Charset achAggressive;
 
     private Charset usAsciiAggressive;
+
     private List<Charset> charsets;
+
+    /**
+     * Creates a new TransliteratingASCIIProvider instance.
+     * <p>
+     * This provider will lazily initialize the available character sets
+     * upon the first request.
+     */
+    public TransliteratingASCIIProvider() {
+        // Default constructor
+    }
 
     private Charset getACHFilter() {
         if (achFilter == null) {
