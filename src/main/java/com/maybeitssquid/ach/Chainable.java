@@ -66,14 +66,12 @@ abstract public class Chainable implements IntFunction<CharSequence> {
             case 0 -> "";
             case 1 -> delegate(result.charAt(0));
             default -> {
-                final CharBuffer buffer = CharBuffer.allocate(20);
-                int position = 0;
-                while (position < result.length()) {
-                    final int codepoint = Character.codePointAt(result, position);
-                    buffer.append(delegate(codepoint));
-                    position += Character.isHighSurrogate(result.charAt(position)) ? 2 : 1;
+                final StringBuilder builder = new StringBuilder(result.length());
+                for (int i = 0; i < result.length(); i++) {
+                    if (Character.isLowSurrogate(result.charAt(i))) continue;
+                    builder.append(delegate(Character.codePointAt(result, i)));
                 }
-                yield buffer.toString();
+                yield builder.toString();
             }
         };
     }
