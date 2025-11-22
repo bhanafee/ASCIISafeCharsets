@@ -38,6 +38,8 @@ public class Categorize extends Chainable {
      */
     public static final int UNICODE_NEL = 0x0085;
 
+    protected final IntFunction<CharSequence> identity = Character::toString;
+
     private final CharSequence lineSeparator;
 
     /**
@@ -70,24 +72,11 @@ public class Categorize extends Chainable {
     }
 
     /**
-     * Returns the string representation of the codepoint without any transformation.
-     * <p>
-     * This helper method is used when a character should be preserved as-is (but as a CharSequence)
-     * or when no specific categorization rule applies.
-     *
-     * @param codepoint the Unicode codepoint to convert
-     * @return the string containing the character
-     */
-    protected final CharSequence identity(final int codepoint) {
-        return Character.toString(codepoint);
-    }
-
-    /**
      * Transforms a codepoint based on its Unicode category.
      * <p>
      * This method maps specific Unicode categories (like punctuation and separators)
      * to their ASCII equivalents. Characters falling into unhandled categories are
-     * returned as-is via {@link #identity(int)}.
+     * returned as-is via {@link #identity}.
      *
      * @param codepoint the Unicode codepoint to process
      * @return the transformed string or the original character
@@ -99,14 +88,14 @@ public class Categorize extends Chainable {
             case DECIMAL_DIGIT_NUMBER -> Integer.toString(Character.getNumericValue(codepoint));
             case SPACE_SEPARATOR -> " ";
             case LINE_SEPARATOR, PARAGRAPH_SEPARATOR -> getLineSeparator();
-            case CONTROL -> codepoint == UNICODE_NEL ? getLineSeparator() : identity(codepoint);
+            case CONTROL -> codepoint == UNICODE_NEL ? getLineSeparator() : identity.apply(codepoint);
             case DASH_PUNCTUATION -> "-";
             case START_PUNCTUATION -> "(";
             case END_PUNCTUATION -> ")";
             case CONNECTOR_PUNCTUATION -> "_";
             case INITIAL_QUOTE_PUNCTUATION, FINAL_QUOTE_PUNCTUATION -> "\"";
-            case OTHER_SYMBOL -> codepoint == UNICODE_REPLACEMENT ? "?" : identity(codepoint);
-            default -> identity(codepoint);
+            case OTHER_SYMBOL -> codepoint == UNICODE_REPLACEMENT ? "?" : identity.apply(codepoint);
+            default -> identity.apply(codepoint);
         };
     }
 

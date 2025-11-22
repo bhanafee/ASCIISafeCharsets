@@ -237,7 +237,7 @@ public class Name extends Categorize {
         } else if (name.contains("TILDE")) {
             return "~";
         } else {
-            return identity(codepoint);
+            return identity.apply(codepoint);
         }
     }
 }

@@ -6,16 +6,17 @@ import java.util.function.IntFunction;
 /**
  * A {@link Chainable} step that normalizes Unicode characters to a specific form.
  * <p>
- * This class uses {@link java.text.Normalizer} to decompose or compose characters.
+ * This class uses {@link java.text.Normalizer} to decompose characters.
  * By default, it uses {@link java.text.Normalizer.Form#NFKD} (Compatibility Decomposition),
  * which is useful for converting compatibility characters (like ligatures or wide characters)
  * into their base components before further processing.
+ * Only decomposition is supported, not composition.
  * </p>
  *
  * @see java.text.Normalizer
  * @see java.text.Normalizer.Form
  */
-public class Normalize extends Chainable {
+public class Decompose extends Chainable {
 
     /**
      * The lowest codepoint value that is not normalized in {@link Normalizer.Form#NFKD}, corresponding to NO-BREAK SPACE
@@ -25,22 +26,25 @@ public class Normalize extends Chainable {
     private final Normalizer.Form form;
 
     /**
-     * Creates a new Normalize instance with the specified normalization form.
+     * Creates a new Decompose instance with the specified normalization (decomposition) form.
      *
      * @param delegate the next step in the processing chain
-     * @param form     the {@link Normalizer.Form} to use for character normalization
+     * @param form     the {@link Normalizer.Form} to use for character decomposition
      */
-    public Normalize(final IntFunction<CharSequence> delegate, final Normalizer.Form form) {
+    public Decompose(final IntFunction<CharSequence> delegate, final Normalizer.Form form) {
         super(delegate);
-        this.form = form;
+        this.form = switch (form) {
+            case NFD, NFKD -> form;
+            default -> throw new IllegalArgumentException("Unsupported Normalizer.Form: " + form);
+        };
     }
 
     /**
-     * Creates a new Normalize instance using the default {@link Normalizer.Form#NFKD} normalization form.
+     * Creates a new Decompose instance using the default {@link Normalizer.Form#NFKD} normalization form.
      *
      * @param delegate the next step in the processing chain
      */
-    public Normalize(final IntFunction<CharSequence> delegate) {
+    public Decompose(final IntFunction<CharSequence> delegate) {
         this(delegate, Normalizer.Form.NFKD);
     }
 
