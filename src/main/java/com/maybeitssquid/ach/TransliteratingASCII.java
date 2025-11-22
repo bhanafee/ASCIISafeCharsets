@@ -15,7 +15,7 @@ import java.util.function.IntFunction;
 */
 public class TransliteratingASCII extends Charset {
 
-    private final IntFunction<char[]> transliterator;
+    private final IntFunction<CharSequence> transliterator;
 
     /**
      * Initializes a new charset with the given canonical name and alias
@@ -25,7 +25,7 @@ public class TransliteratingASCII extends Charset {
      * @param aliases        An array of this charset's aliases, or null if it has no aliases
      * @param transliterator The function to convert a code point into zero or more characters
      */
-    protected TransliteratingASCII(final String canonicalName, final String[] aliases, final IntFunction<char[]> transliterator) {
+    protected TransliteratingASCII(final String canonicalName, final String[] aliases, final IntFunction<CharSequence> transliterator) {
         super(canonicalName, aliases);
         this.transliterator = transliterator;
     }
@@ -56,8 +56,8 @@ public class TransliteratingASCII extends Charset {
      */
     public boolean containsASCII() {
         for (char ch = 0; ch < 0x0080; ch++) {
-            char[] encoding = transliterator.apply(ch);
-            if (encoding == null || encoding.length != 1 || encoding[0] != ch) {
+            CharSequence encoding = transliterator.apply(ch);
+            if (encoding == null || encoding.length() != 1 || encoding.charAt(0) != ch) {
                 return false;
             }
         }
@@ -85,12 +85,12 @@ public class TransliteratingASCII extends Charset {
                 while (in.hasRemaining()) {
                     final byte b = in.get(in.position());
                     if (b >= 0) {
-                        final char[] transliterated = transliterator.apply(b);
-                        if (transliterated == null || transliterated.length == 0) {
+                        final CharSequence transliterated = transliterator.apply(b);
+                        if (transliterated == null || transliterated.isEmpty()) {
                             return CoderResult.unmappableForLength(1);
-                        } else if (transliterated.length <= out.remaining()) {
+                        } else if (transliterated.length() <= out.remaining()) {
                             in.position(in.position() + 1);
-                            out.put(transliterated);
+                            out.put(transliterated.toString());
                         } else {
                             return CoderResult.OVERFLOW;
                         }
@@ -112,14 +112,14 @@ public class TransliteratingASCII extends Charset {
                     final int codepoint = Character.codePointAt(in, 0);
                     final int length = Character.isSupplementaryCodePoint(codepoint) ? 2 : 1;
 
-                    final char[] transliterated = transliterator.apply(codepoint);
-                    if (transliterated.length == 0) {
+                    final CharSequence transliterated = transliterator.apply(codepoint);
+                    if (transliterated.isEmpty()) {
                         return CoderResult.unmappableForLength(length);
-                    } else if (transliterated.length > out.remaining()) {
+                    } else if (transliterated.length() > out.remaining()) {
                         return CoderResult.OVERFLOW;
                     } else {
                         final int mark = out.position();
-                        for (final char c : transliterated) {
+                        for (final char c : transliterated.toString().toCharArray()) {
                             if (c > 0x007F) {
                                 out.position(mark);
                                 return CoderResult.unmappableForLength(length);
