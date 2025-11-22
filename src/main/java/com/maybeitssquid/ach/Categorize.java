@@ -38,7 +38,7 @@ public class Categorize extends Chainable {
      */
     public static final int UNICODE_NEL = 0x0085;
 
-    protected final IntFunction<CharSequence> identity = Character::toString;
+    protected static final IntFunction<CharSequence> identity = Character::toString;
 
     private final CharSequence lineSeparator;
 
@@ -60,6 +60,13 @@ public class Categorize extends Chainable {
      */
     public Categorize(final IntFunction<CharSequence> delegate) {
         this(delegate, System.lineSeparator());
+    }
+
+    /**
+     * Creates a new Categorizer instance with an identity delegate and default line separator.
+     */
+    public Categorize() {
+        this(identity, System.lineSeparator());
     }
 
     /**

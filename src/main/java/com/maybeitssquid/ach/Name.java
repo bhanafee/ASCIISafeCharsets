@@ -49,6 +49,13 @@ public class Name extends Categorize {
     }
 
     /**
+     * Creates a new Name transliterator with an identity delegate and default line separator.
+     */
+    public Name() {
+        super();
+    }
+
+    /**
      * Transliterates a codepoint based on its type and name.
      *
      * @param codepoint the Unicode codepoint to process
