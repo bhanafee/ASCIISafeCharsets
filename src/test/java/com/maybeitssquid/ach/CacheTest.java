@@ -14,72 +14,58 @@ import static org.junit.jupiter.api.Assertions.assertNull;
  * These tests ensure that the caching mechanism functions as expected, both for ASCII and non-ASCII
  * codepoints, along with verifying correct delegation on cache misses.
  */
-public class CacheTest {
+public class CacheTest extends AbstractChainableTest{
+
+    @Override
+    protected Cache createProcessor() {
+        IntFunction<CharSequence> delegate = value -> "Processed:" + value;
+        return new Cache(delegate);
+    }
 
     @Test
     public void testApplyCachesAsciiValue() {
-        IntFunction<CharSequence> delegate = value -> "Processed:" + value;
-        Cache cache = new Cache(delegate);
-
-        int asciiCodepoint = 65; // 'A'
-        CharSequence expected = "Processed:65";
+        Cache cache = createProcessor();
+        final int asciiCodepoint = 65;
 
         // First call (cache miss, delegate should process)
-        CharSequence result = cache.apply(asciiCodepoint);
-        assertEquals(expected, result);
-
+        test(cache, asciiCodepoint, "Processed:65", "Expected ASCII codepoint '65' to be processed and cached.");
         // Second call (cache hit)
-        CharSequence cachedResult = cache.apply(asciiCodepoint);
-        assertEquals(expected, cachedResult);
+        test(cache, asciiCodepoint, "Processed:65", "Expected ASCII codepoint '65' to be returned from cache.");
     }
 
     @Test
     public void testApplyCachesNonAsciiValue() {
-        IntFunction<CharSequence> delegate = value -> "Processed:" + value;
-        Cache cache = new Cache(delegate);
-
-        int nonAsciiCodepoint = 2000;
-        CharSequence expected = "Processed:2000";
+        Cache cache = createProcessor();
+        final int nonAsciiCodepoint = 2000;
 
         // First call (cache miss, delegate should process)
-        CharSequence result = cache.apply(nonAsciiCodepoint);
-        assertEquals(expected, result);
-
+        test(cache, nonAsciiCodepoint, "Processed:2000", "Expected non-ASCII codepoint '2000' to be processed and cached.");
         // Second call (cache hit)
-        CharSequence cachedResult = cache.apply(nonAsciiCodepoint);
-        assertEquals(expected, cachedResult);
+        test(cache, nonAsciiCodepoint, "Processed:2000", "Expected non-ASCII codepoint '2000' to be processed and cached.");
     }
 
     @Test
     public void testApplyReturnsExistingCachedAsciiValue() {
-        IntFunction<CharSequence> delegate = value -> "Processed:" + value;
-        Cache cache = new Cache(delegate);
-
+        Cache cache = createProcessor();
         int asciiCodepoint = 66; // 'B'
         CharSequence preCachedValue = "PreCached:66";
-
         // Pre-load the cache
         cache.cache(asciiCodepoint, preCachedValue);
 
         // Call apply (should return the pre-cached value)
-        CharSequence result = cache.apply(asciiCodepoint);
-        assertEquals(preCachedValue, result);
+        test(cache, asciiCodepoint, preCachedValue, "Expected pre-cached string 'PreCached66' to be returned.");
     }
 
     @Test
     public void testApplyReturnsExistingCachedNonAsciiValue() {
-        IntFunction<CharSequence> delegate = value -> "Processed:" + value;
-        Cache cache = new Cache(delegate);
-
+        Cache cache = createProcessor();
         int nonAsciiCodepoint = 3000;
         CharSequence preCachedValue = "PreCached:3000";
-
         // Pre-load the cache
         cache.cache(nonAsciiCodepoint, preCachedValue);
 
         // Call apply (should return the pre-cached value)
-        CharSequence result = cache.apply(nonAsciiCodepoint);
-        assertEquals(preCachedValue, result);
+        test(cache, nonAsciiCodepoint, preCachedValue, "Expected pre-cached string 'PreCached:3000' to be returned.");
     }
 
     @Test
@@ -100,24 +86,19 @@ public class CacheTest {
 
     @Test
     public void testApplyDoesNotInterfereWithSeparateCodepoints() {
-        IntFunction<CharSequence> delegate = value -> "Processed:" + value;
-        Cache cache = new Cache(delegate);
+        Cache cache = createProcessor();
 
         int codepoint1 = 100;
         int codepoint2 = 200;
         CharSequence expected1 = "Processed:100";
         CharSequence expected2 = "Processed:200";
 
-        // First call for codepoint1
-        CharSequence result1 = cache.apply(codepoint1);
-        assertEquals(expected1, result1);
-
-        // First call for codepoint2
-        CharSequence result2 = cache.apply(codepoint2);
-        assertEquals(expected2, result2);
+        // First call for each (cache misses)
+        test(cache, codepoint1, expected1, "Expected first codepoint to be processed and cached.");
+        test(cache, codepoint2, expected2, "Expected second codepoint to be processed and cached.");
 
         // Second call for each (cache hit)
-        assertEquals(expected1, cache.apply(codepoint1));
-        assertEquals(expected2, cache.apply(codepoint2));
+        test(cache, codepoint1, expected1, "Expected first codepoint to be returned from cache.");
+        test(cache, codepoint2, expected2, "Expected second codepoint to be returned from cache.");
     }
 }
