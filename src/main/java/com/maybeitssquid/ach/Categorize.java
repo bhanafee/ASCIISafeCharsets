@@ -66,7 +66,7 @@ public class Categorize extends Chainable {
      * Creates a new Categorizer instance with an identity delegate and default line separator.
      */
     public Categorize() {
-        this(identity, System.lineSeparator());
+        this(identity);
     }
 
     /**
