@@ -2,78 +2,73 @@ package com.maybeitssquid.ach;
 
 import org.junit.jupiter.api.Test;
 
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Unit tests for the {@link Categorize} class.
  */
 public class CategorizeTest extends AbstractChainableTest{
+
     @Override
     protected Categorize createProcessor() {
         return new Categorize();
     }
 
-    @Test
-    public void testProcess_DecimalDigitNumber() {
-        test('5', "5", "Expected decimal digit '5' to be returned unchanged.");
-        test('\uA9D5', "5", "Expected Javanese decimal digit '5' to be returned as '5'.");
+    @ValueSource(ints = { 'A', 'Z', 'a', 'z', '0', '9', '\n', 1, 0x2605, 0x1F680 })
+    @ParameterizedTest
+    public void testPassthrough(final int codepoint) {
+        testUnchanged(codepoint);
     }
 
-    @Test
-    public void testProcess_SpaceSeparator() {
-        test(' ', " ", "Expected SPACE to be returned unchanged.");
-        test('\u2003', " ", "Expected EM SPACE to be returned as ' '.");
+    @ValueSource(ints = { '5', 0x0665, 0x06F5, 0x07C5, 0xA9D5, 0x1E955, 0x1FBF5})
+    @ParameterizedTest
+    public void testProcess_DecimalDigitNumber(final int codepoint) {
+        test(codepoint, "5");
     }
 
-    @Test
-    public void testProcess_LineSeparator() {
-        test('\n', "\n", "Expected LF to be returned unchanged.");
-        test('\u2028', System.lineSeparator(), "Expected LINE SEPARATOR to be returned as system line separator.");
+    @ValueSource(ints = { ' ', 0x00A0, 0x1680, 0x2000, 0x2001, 0x2002, 0x2003, 0x2004, 0x02005, 0x2006, 0x2007, 0x2008, 0x2009, 0x200A, 0x202F, 0x205F, 0x3000})
+    @ParameterizedTest
+    public void testProcess_SpaceSeparator(final int codepoint) {
+        test(codepoint, " ");
     }
 
-    @Test
-    public void testProcess_ParagraphSeparator() {
-        test('\u2029', System.lineSeparator(), "Expected PARAGRAPH SEPARATOR to be returned as system line separator.");
+    @ValueSource(ints = { '\n', 0x2028, 0x2029, Categorize.UNICODE_NEL})
+    @ParameterizedTest
+    public void testProcess_LineSeparators(final int codepoint) {
+        test(codepoint, System.lineSeparator());
     }
 
-    @Test
-    public void testProcess_Control_NEL() {
-        test(Categorize.UNICODE_NEL, System.lineSeparator(), "Expected NEL to be returned as system line separator.");
+    @ValueSource(ints = { '-', 0x058A, 0x2010, 0x2011, 0x2012, 0x2013, 0x2014, 0x2015, 0xFE58, 0xFE63, 0xFF0D })
+    @ParameterizedTest
+    public void testProcess_DashPunctuation(final int codepoint) {
+        test(codepoint, "-");
     }
 
-    @Test
-    public void testProcess_Control_NotNEL() {
-        test('\u0001', "\u0001", "Expected Non-NEL control character to be returned unchanged.");
+    @ValueSource(ints={'(', 0x0F3A, 0x2045, 0x2329, 0x2768, 0x2774, 0x27E6, 0x2983, 0x298B, 0x298D, 0x298F, 0x301A, 0xFE37, 0xFE47, 0xFE5B, 0xFF3B, 0xFF5B})
+    @ParameterizedTest
+    public void testProcess_StartPunctuation(final int codepoint) {
+        test(codepoint, "(");
     }
 
-    @Test
-    public void testProcess_DashPunctuation() {
-        test('-', "-", "Expected DASH to be returned unchanged.");
-        test('\u2014', "-", "Expected EM DASH to be returned as '-'.");
+    @ValueSource(ints={')', 0x0F3B, 0x2046, 0x232A, 0x2769, 0x2775, 0x27E7, 0x2984, 0x298C, 0x298E, 0x2990, 0x301B, 0xFE38, 0xFE48, 0xFE5C})
+    @ParameterizedTest
+    public void testProcess_EndPunctuation(final int codepoint) {
+        test(codepoint, ")");
+     }
+
+    @ValueSource(ints={'_', 0x203F, 0x2040, 0x2054, 0xFE33, 0xFE34, 0xFE4D, 0xFE4E, 0xFE4F, 0xFF3F})
+    @ParameterizedTest
+    public void testProcess_ConnectorPunctuation(final int codepoint) {
+        test(codepoint, "_");
     }
 
-    @Test
-    public void testProcess_StartPunctuation() {
-        test('(', "(", "Expected LEFT PARENTHESIS to be returned unchanged.");
-        test('\u2768', "(", "Expected Unicode MEDIUM LEFT PARENTHESIS ORNAMENT to be returned as '('.");
-    }
-
-    @Test
-    public void testProcess_EndPunctuation() {
-        test(')', ")", "Expected RIGHT PARENTHESIS to be returned unchanged.");
-        test('\u2769', ")", "Expected Unicode MEDIUM RIGHT PARENTHESIS ORNAMENT to be returned as '('.");
-    }
-
-    @Test
-    public void testProcess_ConnectorPunctuation() {
-        test('_', "_", "Expected UNDERSCORE to be returned unchanged.");
-        test('\u203F', "_", "Expected Unicode UNDERTIE to be returned as '_'.");
-    }
-
-    @Test
-    public void testProcess_InitialQuotePunctuation() {
-        test('\"', "\"", "Expected quote character to be returned unchanged.");
-        test('\u201C', "\"", "Expected Unicode LEFT DOUBLE QUOTATION MARK to be returned as '\"'");
+    @ValueSource(ints={'\"', 0x201C})
+    @ParameterizedTest
+    public void testProcess_InitialQuotePunctuation(final int codepoint) {
+        test(codepoint, "\"");
     }
 
     @Test
@@ -83,17 +78,7 @@ public class CategorizeTest extends AbstractChainableTest{
 
     @Test
     public void testProcess_OtherSymbol_UnicodeReplacement() {
-        test('\uFFFD', "?", "Expected Unicode REPLACEMENT CHARACTER to be returned as '?'.");
-    }
-
-    @Test
-    public void testProcess_OtherSymbol_NotUnicodeReplacement() {
-        test('\u2605', "\u2605", "Expected Unicode BLACK STAR to be returned unchanged.");
-    }
-
-    @Test
-    public void testProcess_DefaultCase() {
-        test(0x1F680, "\uD83D\uDE80", "Expected Unicode ROCKET to be returned as surrogate pair string.");
+        test('\uFFFD', "?");
     }
 
     @Test
