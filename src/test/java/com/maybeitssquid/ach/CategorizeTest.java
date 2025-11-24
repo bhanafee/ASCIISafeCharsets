@@ -17,7 +17,7 @@ public class CategorizeTest extends AbstractChainableTest{
         return new Categorize();
     }
 
-    @ValueSource(ints = { 'A', 'Z', 'a', 'z', '0', '9', '\n', 1, 0x2605, 0x1F680 })
+    @ValueSource(ints = { 'A', 'Z', 'a', 'z', '0', '9', '\n', '\"', 1, 0x2605, 0x1F680 })
     @ParameterizedTest
     public void testPassthrough(final int codepoint) {
         testUnchanged(codepoint);
@@ -37,7 +37,7 @@ public class CategorizeTest extends AbstractChainableTest{
 
     @ValueSource(ints = { '\n', 0x2028, 0x2029, Categorize.UNICODE_NEL})
     @ParameterizedTest
-    public void testProcess_LineSeparators(final int codepoint) {
+    public void testProcess_LineParagraphSeparators(final int codepoint) {
         test(codepoint, System.lineSeparator());
     }
 
@@ -65,15 +65,16 @@ public class CategorizeTest extends AbstractChainableTest{
         test(codepoint, "_");
     }
 
-    @ValueSource(ints={'\"', 0x201C})
+    @ValueSource(ints={0x00AB, 0x2018, 0x201B, 0x201C, 0x201F, 0x2039, 0x2E02, 0x2E04, 0x2E09, 0x2E0C, 0x2E20})
     @ParameterizedTest
     public void testProcess_InitialQuotePunctuation(final int codepoint) {
         test(codepoint, "\"");
     }
 
-    @Test
-    public void testProcess_FinalQuotePunctuation() {
-        test('\u201D', "\"", "Expected Unicode RIGHT DOUBLE QUOTATION MARK to be returned as '\"'");
+    @ValueSource(ints={0x00BB, 0x2019, 0x201D, 0x203A, 0x2E03, 0x2E05, 0x2E0A, 0x2E0D, 0x2E1D, 0x2E21})
+    @ParameterizedTest
+    public void testProcess_FinalQuotePunctuation(final int codepoint) {
+        test(codepoint, "\"");
     }
 
     @Test
