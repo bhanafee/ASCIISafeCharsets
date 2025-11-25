@@ -14,15 +14,26 @@ public class NameTest extends AbstractChainableTest {
         return new Name();
     }
 
-    @Test
-    public void testProcessUppercaseLetter() {
-        testUnchanged(0x0041);
+    @ValueSource(ints = { 0x0041, 0x00C0, 0x0100, 0x0102, 0x01E0, 0x1EB6, 0xFF21 })
+    @ParameterizedTest
+    public void testProcessUppercaseLetter(final int codepoint) {
+        test(codepoint, "A");
     }
 
     @Test
     public void testProcessLowercaseLetter() {
         testUnchanged(0x0061);
     }
+
+    @Test
+    public void testProcessTitlecaseLetter() {
+        test(0x01C5, "Dz", "Expected titlecase letter 'ǅ' to be returned as 'Dz'.");
+        test(0x01C8, "Lj", "Expected titlecase letter 'ǈ' to be returned as 'Lj'.");
+        test(0x01CB, "Nj", "Expected titlecase letter 'ǋ to be returned as 'Nj'.");
+        test(0x01F2, "Dz", "Expected titlecase letter 'ǅ' to be returned as 'Dz'.");
+        test(0x1F88, "", "Expected titlecase letter 'ᾈ' to be returned as empty string.");
+    }
+
 
     @ValueSource(ints = {'[', 0x2045, 0x27E6, 0x298B, 0x298D, 0x298F, 0x301A, 0xFE47, 0xFF3B})
     @ParameterizedTest
@@ -87,6 +98,38 @@ public class NameTest extends AbstractChainableTest {
         test(0xFFFD, "?");
     }
 
+    @ValueSource(ints = {0x24B6, 0x1F110, 0x1F130, 0x1F150, 0x1F170})
+    @ParameterizedTest
+    public void testProcessOtherSymbolUppercaseLetter(final int codepoint) {
+        test(codepoint, "A");
+    }
+
+    @ValueSource(ints = {0x249C, 0x249C, 0x24D0, 0x2C65, 0xFF41})
+    @ParameterizedTest
+    public void testProcessOtherSymbolLowercaseLetter(final int codepoint) {
+        test(codepoint, "a");
+    }
+
+    @Test
+    public void testProcessOtherSymbolLowercaseSpecialLetter() {
+        test(0xA733, "aa");
+        test(0xA735, "ao");
+        test(0xA737, "au");
+        test(0xA739, "av");
+        test(0xA73B, "av");
+        test(0xA73D, "ay");
+    }
+
+    @Test
+    public void testProcessOtherSymbolUppercaseSpecialLetter() {
+        test(0xA732, "AA");
+        test(0xA734, "AO");
+        test(0xA736, "AU");
+        test(0xA738, "AV");
+        test(0xA73A, "AV");
+        test(0xA73C, "AY");
+    }
+
     @Test
     public void testProcessOtherSymbolReplacementCharacter() {
         testUnchanged(0x00A6);
@@ -100,11 +143,6 @@ public class NameTest extends AbstractChainableTest {
     @Test
     public void testProcessEqualsColonSpecialCase() {
         test(0x2255, "=:");
-    }
-
-    @Test
-    public void testProcessSlashExclusionRule() {
-        testUnchanged(Name.UNICODE_CIRCLED_ZERO_WITH_SLASH);
     }
 
     @Test

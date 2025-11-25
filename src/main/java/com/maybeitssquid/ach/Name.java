@@ -21,13 +21,16 @@ import static java.lang.Character.*;
  * </ul>
  */
 public class Name extends Categorize {
-    private static final Pattern latin = Pattern.compile("LATIN (SMALL |CAPITAL )?LETTER ([A-Z]+ )*(?<letter>\\p{Upper}\\p{Upper}?)\\b");
-
     public static final int UNICODE_CIRCLED_ZERO_WITH_SLASH = 0x1F10D;
-
+    public static final int UNICODE_TRIPLE_SOLIDUS_BINARY_RELATION = 0x2AFB;
+    public static final int UNICODE_DOUBLE_SOLIDUS_OPERATOR = 0x2AFD;
+    public static final int UNICODE_OCR_DOUBLE_BACKSLASH = 0x244A;
+    public static final int UNICODE_COLON_SIGN = 0x20A1;
     public static final int UNICODE_COLON_EQUALS = 0x2254;
     public static final int UNICODE_EQUALS_COLON = 0x2255;
-    public static final int UNICODE_COLON_SIGN = 0x20A1;
+    public static final int UNICODE_CIRCLED_DOLLAR_SIGN_WITH_OVERLAID_BACKSLASH = 0x1F10F;
+    public static final int UNICODE_CIRCLED_C_WITH_OVERLAID_BACKSLASH = 0x1F16E;
+    private static final Pattern latin = Pattern.compile("LATIN (SMALL |CAPITAL )?LETTER ([A-Z]+ )*(?<letter>\\p{Upper}\\p{Upper}?)\\b");
 
     /**
      * Creates a new Name transliterator with the specified delegate and line separator.
@@ -60,13 +63,14 @@ public class Name extends Categorize {
      *
      * @param codepoint the Unicode codepoint to process
      * @return the transliterated ASCII string, or the result of the superclass processing
-     *         if no specific name-based rule applies
+     * if no specific name-based rule applies
      */
     @Override
     protected CharSequence process(final int codepoint) {
         return switch (Character.getType(codepoint)) {
             case UPPERCASE_LETTER -> uppercase(codepoint);
             case LOWERCASE_LETTER -> lowercase(codepoint);
+            case TITLECASE_LETTER -> titlecase(codepoint);
             case START_PUNCTUATION -> startPunctuation(codepoint);
             case END_PUNCTUATION -> endPunctuation(codepoint);
             case INITIAL_QUOTE_PUNCTUATION, FINAL_QUOTE_PUNCTUATION -> quotePunctuation(codepoint);
@@ -85,7 +89,7 @@ public class Name extends Categorize {
     /**
      * Extracts the base ASCII character for an uppercase letter from its name.
      *
-     * @param codepoint the codepoint to process
+     * @param codepoint the uppercase codepoint to process
      * @return the base letter if found in the name, otherwise an empty string
      */
     protected CharSequence uppercase(final int codepoint) {
@@ -95,11 +99,27 @@ public class Name extends Categorize {
     /**
      * Extracts the base ASCII character for a lowercase letter from its name.
      *
-     * @param codepoint the codepoint to process
+     * @param codepoint the lowercase codepoint to process
      * @return the base letter converted to lowercase if found, otherwise an empty string
      */
     protected CharSequence lowercase(final int codepoint) {
         return letter(codepoint).toLowerCase(Locale.ROOT);
+    }
+
+    /**
+     * Processes the titlecase characters. There are only four that transliterate to ASCII; the remainder are Greek.
+     * This method will have no effect if a prior processing step has already decomposed the codepoint.
+     *
+     * @param codepoint the title case codepoint to process
+     * @return the ASCII equivalent, or an empty string if not found
+     */
+    protected CharSequence titlecase(final int codepoint) {
+        return switch (codepoint) {
+            case 0x01C5, 0x01F2 -> "Dz";
+            case 0x01C8 -> "Lj";
+            case 0x01CB -> "Nj";
+            default -> "";
+        };
     }
 
     /**
@@ -173,6 +193,34 @@ public class Name extends Categorize {
         }
     }
 
+    protected CharSequence solidus(final String name, final int codepoint) {
+        if (name.contains("REVERSE SOLIDUS")) {
+            return "\\";
+        } else if (name.contains("BACKSLASH")) {
+            return switch (codepoint) {
+                case UNICODE_OCR_DOUBLE_BACKSLASH -> "\\\\";
+                case UNICODE_CIRCLED_DOLLAR_SIGN_WITH_OVERLAID_BACKSLASH -> "$";
+                case UNICODE_CIRCLED_C_WITH_OVERLAID_BACKSLASH -> "C";
+                default -> "\\";
+            };
+        } else {
+            return switch (codepoint) {
+                case UNICODE_CIRCLED_ZERO_WITH_SLASH -> "0";
+                case UNICODE_TRIPLE_SOLIDUS_BINARY_RELATION -> "///";
+                case UNICODE_DOUBLE_SOLIDUS_OPERATOR -> "//";
+                default -> "/";
+            };
+        }
+    }
+
+    protected CharSequence equal(final int codepoint) {
+        return switch (codepoint) {
+            case UNICODE_COLON_EQUALS -> ":=";
+            case UNICODE_EQUALS_COLON -> "=:";
+            default -> "=";
+        };
+    }
+
     /**
      * Converts a Unicode codepoint to ASCII by analyzing its character name.
      *
@@ -183,27 +231,37 @@ public class Name extends Categorize {
      *
      * <p>Recognized patterns include:
      * <ul>
+     *   <li>LATIN [CAPITAL|SMALL] LETTER → corresponding letter</li>
+     *   <li>REVERSE SOLIDUS, BACKSLASH → {@code \} (exceptions noted)
+     *   <li>SOLIDUS, SLASH → {@code /} (exceptions noted)
+     *   <li>EQUAL → {@code =} (special cases for colon equals and equals colon)
      *   <li>AMPERSAND → {@code &}
-     *   <li>FULL STOP → {@code .}
+     *   <li>FULL STOP → {@code .} (does not handle composed "[DIGIT|NUMBER] x FULL STOP")
      *   <li>APOSTROPHE → {@code '}
      *   <li>EXCLAMATION MARK → {@code !}
      *   <li>QUESTION → {@code ?}
+     *   <li>INTERROBANG → {@code ?!}
      *   <li>ASTERISK → {@code *}
      *   <li>SEMICOLON → {@code ;}
      *   <li>PERCENT → {@code %}
      *   <li>PLUS SIGN → {@code +}
      *   <li>MULTIPLICATION → {@code X}
-     *   <li>REVERSE SOLIDUS, BACKSLASH → {@code \}
-     *   <li>SOLIDUS, SLASH → {@code /} (except circled zero with slash)
      *   <li>COMMA → {@code ,}
-     *   <li>EQUAL → {@code =} (special cases for colon equals and equals colon)
      *   <li>COLON → {@code :} (except Colombian currency symbol)
      *   <li>TILDE → {@code ~}
      * </ul>
      */
     protected CharSequence byName(final int codepoint) {
         final String name = Character.getName(codepoint);
-        if (name.contains("AMPERSAND")) {
+        if (name.contains("LATIN CAPITAL LETTER")) {
+            return uppercase(codepoint);
+        } else if (name.contains("LATIN SMALL LETTER")) {
+            return lowercase(codepoint);
+        } else if (name.contains("SOLIDUS") || name.contains("SLASH")) {
+            return solidus(name, codepoint);
+        } else if (name.contains("EQUAL")) {
+            return equal(codepoint);
+        } else if (name.contains("AMPERSAND")) {
             return "&";
         } else if (name.contains("FULL STOP")) {
             return ".";
@@ -225,24 +283,12 @@ public class Name extends Categorize {
             return "+";
         } else if (name.contains("MULTIPLICATION")) {
             return "X";
-        } else if (name.contains("REVERSE SOLIDUS") || name.contains("BACKSLASH")) {
-            return "\\";
-        } else if (name.contains("SOLIDUS") || name.contains("SLASH") && codepoint != UNICODE_CIRCLED_ZERO_WITH_SLASH) {
-            return "/";
         } else if (name.contains("COMMA")) {
             return ",";
-        } else if (name.contains("EQUAL")) {
-            if (codepoint == UNICODE_COLON_EQUALS) {
-                return ":=";
-            } else if (codepoint == UNICODE_EQUALS_COLON) {
-                return "=:";
-            } else {
-                return "=";
-            }
-        } else if (name.contains("COLON") && codepoint != UNICODE_COLON_SIGN) {
-            return ":";
         } else if (name.contains("TILDE")) {
             return "~";
+        } else if (name.contains("COLON") && codepoint != UNICODE_COLON_SIGN) {
+            return ":";
         } else {
             return identity.apply(codepoint);
         }
