@@ -19,7 +19,7 @@ import java.util.function.IntFunction;
 public class Decompose extends Chainable {
 
     /**
-     * The lowest codepoint value that is not normalized in {@link Normalizer.Form#NFKD}, corresponding to NO-BREAK SPACE
+     * The lowest codepoint value that is not decomposed, corresponding to NO-BREAK SPACE
      */
     public static final int LOWEST_COMPOSED_CODEPOINT = 0x00A0;
 
@@ -29,7 +29,7 @@ public class Decompose extends Chainable {
      * Creates a new Decompose instance with the specified normalization (decomposition) form.
      *
      * @param delegate the next step in the processing chain
-     * @param form     the {@link Normalizer.Form} to use for character decomposition
+     * @param form     the {@link Normalizer.Form} to use for character decomposition, which must be NFD or NFKD.
      */
     public Decompose(final IntFunction<CharSequence> delegate, final Normalizer.Form form) {
         super(delegate);
@@ -64,8 +64,8 @@ public class Decompose extends Chainable {
      * Applies normalization to the input value.
      * <p>
      * This method includes an optimization to skip normalization for characters
-     * below {@link #LOWEST_COMPOSED_CODEPOINT}, assuming they are invariant
-     * under the configured normalization form (typically NFKD).
+     * below {@link #LOWEST_COMPOSED_CODEPOINT}, because they are invariant
+     * under all normalization forms.
      * </p>
      *
      * @param value the input codepoint
