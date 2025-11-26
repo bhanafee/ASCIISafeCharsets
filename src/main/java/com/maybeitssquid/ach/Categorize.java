@@ -78,6 +78,18 @@ public class Categorize extends Chainable {
         return lineSeparator;
     }
 
+    protected CharSequence startPunctuation(final int codepoint) {
+        return "(";
+    }
+
+    protected CharSequence endPunctuation(final int codepoint) {
+        return ")";
+    }
+
+    protected CharSequence quotePunctuation(final int codepoint) {
+        return "\"";
+    }
+
     /**
      * Transforms a codepoint based on its Unicode category.
      * <p>
@@ -97,10 +109,10 @@ public class Categorize extends Chainable {
             case LINE_SEPARATOR, PARAGRAPH_SEPARATOR -> getLineSeparator();
             case CONTROL -> codepoint == UNICODE_NEL ? getLineSeparator() : identity.apply(codepoint);
             case DASH_PUNCTUATION -> "-";
-            case START_PUNCTUATION -> "(";
-            case END_PUNCTUATION -> ")";
+            case START_PUNCTUATION -> startPunctuation(codepoint);
+            case END_PUNCTUATION -> endPunctuation(codepoint);
             case CONNECTOR_PUNCTUATION -> "_";
-            case INITIAL_QUOTE_PUNCTUATION, FINAL_QUOTE_PUNCTUATION -> "\"";
+            case INITIAL_QUOTE_PUNCTUATION, FINAL_QUOTE_PUNCTUATION -> quotePunctuation(codepoint);
             case OTHER_SYMBOL -> codepoint == UNICODE_REPLACEMENT ? "?" : identity.apply(codepoint);
             default -> identity.apply(codepoint);
         };

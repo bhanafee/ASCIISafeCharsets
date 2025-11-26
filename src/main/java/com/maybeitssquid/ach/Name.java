@@ -71,9 +71,6 @@ public class Name extends Categorize {
             case UPPERCASE_LETTER -> uppercase(codepoint);
             case LOWERCASE_LETTER -> lowercase(codepoint);
             case TITLECASE_LETTER -> titlecase(codepoint);
-            case START_PUNCTUATION -> startPunctuation(codepoint);
-            case END_PUNCTUATION -> endPunctuation(codepoint);
-            case INITIAL_QUOTE_PUNCTUATION, FINAL_QUOTE_PUNCTUATION -> quotePunctuation(codepoint);
             case MODIFIER_LETTER, OTHER_PUNCTUATION, MODIFIER_SYMBOL, MATH_SYMBOL -> byName(codepoint);
             case OTHER_SYMBOL -> codepoint == UNICODE_REPLACEMENT ? super.process(codepoint) : byName(codepoint);
             default -> super.process(codepoint);
@@ -136,6 +133,7 @@ public class Name extends Categorize {
      * @param codepoint the codepoint to process
      * @return the corresponding ASCII opening bracket
      */
+    @Override
     protected CharSequence startPunctuation(final int codepoint) {
         final String name = Character.getName(codepoint);
         if (name.contains("SQUARE")) {
@@ -163,6 +161,7 @@ public class Name extends Categorize {
      * @param codepoint the codepoint to process
      * @return the corresponding ASCII closing bracket
      */
+    @Override
     protected CharSequence endPunctuation(final int codepoint) {
         final String name = Character.getName(codepoint);
         if (name.contains("SQUARE")) {
@@ -184,6 +183,7 @@ public class Name extends Categorize {
      * @param codepoint the codepoint to process
      * @return the corresponding ASCII quote character
      */
+    @Override
     protected CharSequence quotePunctuation(final int codepoint) {
         final String name = Character.getName(codepoint);
         if (name.contains("DOUBLE") || name.contains("DOTTED")) {
