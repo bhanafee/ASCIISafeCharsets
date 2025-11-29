@@ -10,21 +10,18 @@ import static java.lang.Character.*;
  * <ul>
  *     <li>{@code Nd} {@link Character#DECIMAL_DIGIT_NUMBER} are converted to their ASCII digit equivalents {@code 0-9}</li>
  *     <li>{@code Zs} {@link Character#SPACE_SEPARATOR} are converted to ASCII space</li>
- *     <li>{@code Zl, Zp} {@link Character#LINE_SEPARATOR} and {@link Character#PARAGRAPH_SEPARATOR} are converted to
- *     {@link #getLineSeparator() line separator}</li>
+ *     <li>{@code Zl, Zp, U+0085} {@link Character#LINE_SEPARATOR}, {@link Character#PARAGRAPH_SEPARATOR} and
+ *     {@link #UNICODE_NEL} are converted to {@link #getLineSeparator() line separator}. Carriage
+ *     return {@code U+000D} and line feed {@code U+000A} are passed as-is.</li>
  *     <li>{@code Pd} {@link Character#DASH_PUNCTUATION} are converted to ASCII hyphen-minus {@code -}</li>
  *     <li>{@code Ps} {@link Character#START_PUNCTUATION} are converted to ASCII open parenthesis {@code (}</li>
  *     <li>{@code Pe} {@link Character#END_PUNCTUATION} are converted to ASCII close parenthesis {@code )}</li>
  *     <li>{@code Pc} {@link Character#CONNECTOR_PUNCTUATION} are converted to ASCII underscore {@code _}</li>
  *     <li>{@code Pi, Pf} {@link Character#INITIAL_QUOTE_PUNCTUATION} and {@link Character#FINAL_QUOTE_PUNCTUATION} are
  *     converted to ASCII double quote {@code "}</li>
+ *     <li>{@code U+FFFD} {@link #UNICODE_REPLACEMENT} is converted to ASCII question mark {@code ?}</li>
  * </ul>
  * <p>
- * Special cases:
- * <ul>
- *     <li>{@link #UNICODE_NEL} is converted to system-specific line break</li>
- *     <li>{@link #UNICODE_REPLACEMENT} is converted to ASCII question mark</li>
- * </ul>
  */
 public class Categorize extends Chainable {
 
