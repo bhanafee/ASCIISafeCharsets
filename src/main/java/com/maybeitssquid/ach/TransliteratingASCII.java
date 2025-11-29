@@ -17,16 +17,24 @@ public class TransliteratingASCII extends Charset {
 
     private final IntFunction<CharSequence> transliterator;
 
+    private static String[] aliases(final String[] names) {
+        if (names.length > 1) {
+            final String[] aliases = new String[names.length - 1];
+            System.arraycopy(names, 1, aliases, 0, aliases.length);
+            return aliases;
+        } else {
+            return new String[0];
+        }
+    }
     /**
      * Initializes a new charset with the given canonical name and alias
      * set.
      *
-     * @param canonicalName  The canonical name of this charset
-     * @param aliases        An array of this charset's aliases, or null if it has no aliases
      * @param transliterator The function to convert a code point into zero or more characters
+     * @param names          The canonical name of this charset followed by any aliases
      */
-    protected TransliteratingASCII(final String canonicalName, final String[] aliases, final IntFunction<CharSequence> transliterator) {
-        super(canonicalName, aliases);
+    protected TransliteratingASCII(final IntFunction<CharSequence> transliterator, final String... names) {
+        super(names[0], aliases(names));
         this.transliterator = transliterator;
     }
 

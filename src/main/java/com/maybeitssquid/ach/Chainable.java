@@ -1,6 +1,5 @@
 package com.maybeitssquid.ach;
 
-import java.nio.CharBuffer;
 import java.util.function.IntFunction;
 
 /**
@@ -69,7 +68,9 @@ abstract public class Chainable implements IntFunction<CharSequence> {
                 final StringBuilder builder = new StringBuilder(result.length());
                 for (int i = 0; i < result.length(); i++) {
                     if (Character.isLowSurrogate(result.charAt(i))) continue;
-                    builder.append(delegate(Character.codePointAt(result, i)));
+                    final int nextPoint = Character.codePointAt(result, i);
+                    final CharSequence chunk = delegate(nextPoint);
+                    builder.append(chunk);
                 }
                 yield builder.toString();
             }
