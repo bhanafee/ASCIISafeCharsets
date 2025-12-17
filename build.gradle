@@ -33,7 +33,7 @@ publishing {
     publications {
         create('mavenJava', MavenPublication) {
             groupId = group
-            artifactId = "retry"
+            artifactId = "achcharset"
             version = version
             artifact jar
             artifact sourcesJar
@@ -45,7 +45,7 @@ publishing {
             name = "GitHubPackages"
             url = "https://maven.pkg.github.com/bhanafee/ACHCharset"
             credentials {
-                username = System.getenv("USERNAME")
+                username = System.getenv("GITHUB_ACTOR")
                 password = System.getenv("TOKEN")
             }
         }

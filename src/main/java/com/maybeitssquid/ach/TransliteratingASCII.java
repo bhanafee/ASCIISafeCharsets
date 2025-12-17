@@ -5,6 +5,8 @@ import java.nio.CharBuffer;
 import java.nio.charset.*;
 import java.util.function.IntFunction;
 
+import static com.maybeitssquid.ach.Chainable.ASCII;
+
 /**
  * A custom charset implementation that transliterates Unicode code points to ASCII characters
  * using a configurable transliteration function.
@@ -63,7 +65,7 @@ public class TransliteratingASCII extends Charset {
      * @see StandardCharsets#US_ASCII
      */
     public boolean containsASCII() {
-        for (char ch = 0; ch < 0x0080; ch++) {
+        for (char ch = 0; ch < ASCII; ch++) {
             CharSequence encoding = transliterator.apply(ch);
             if (encoding == null || encoding.length() != 1 || encoding.charAt(0) != ch) {
                 return false;
@@ -160,14 +162,16 @@ public class TransliteratingASCII extends Charset {
                     final int length = Character.isSupplementaryCodePoint(codepoint) ? 2 : 1;
 
                     final CharSequence transliterated = transliterator.apply(codepoint);
-                    if (transliterated.isEmpty()) {
+                    if (transliterated == null || transliterated.isEmpty()) {
                         return CoderResult.unmappableForLength(length);
                     } else if (transliterated.length() > out.remaining()) {
                         return CoderResult.OVERFLOW;
                     } else {
                         final int mark = out.position();
-                        for (final char c : transliterated.toString().toCharArray()) {
-                            if (c > 0x007F) {
+                        final int len = transliterated.length();
+                        for (int i = 0; i < len; i++) {
+                            final char c = transliterated.charAt(i);
+                            if (c >= ASCII) {
                                 out.position(mark);
                                 return CoderResult.unmappableForLength(length);
                             } else {

@@ -96,8 +96,8 @@ public class TransliteratingASCIIProvider extends CharsetProvider {
 
     /**
      * Returns an iterator over all available character sets provided by this class.
-     * The available charsets are: X-ACH-ASCIIFilter, X-ACH-Newlines, X-ACH-Aggressive,
-     * and X-US-ASCII-Transliterating.
+     * The available charsets are: X-ACH (ACH), X-ACH-Newlines, X-Transliterating,
+     * and X-Transliterating-Single-Byte.
      *
      * @return Iterator containing all supported character sets
      * {@code @ThreadSafe} This method is thread-safe and uses lazy initialization

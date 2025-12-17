@@ -118,7 +118,7 @@ public class Categorize extends Chainable {
     /**
      * Applies the categorization logic to the input value.
      * <p>
-     * This method includes an optimization for ASCII characters (values < {@link #ASCII}).
+     * This method includes an optimization for ASCII characters (values &lt; {@link #ASCII}).
      * If the input is already ASCII, it skips the categorization process and immediately
      * delegates to the next step in the chain.
      *
