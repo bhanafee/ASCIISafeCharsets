@@ -1,0 +1,2 @@
+[versions]
+junit = { strictly = "[5,)", prefer = "6.0.+" }
