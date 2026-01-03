@@ -12,10 +12,21 @@ public class SingleCharacterFilter implements IntFunction<CharSequence> {
      */
     private final IntFunction<CharSequence> delegate;
 
+    /**
+     * Creates a new SingleCharacterFilter with the specified delegate.
+     *
+     * @param delegate the function to apply before filtering
+     */
     public SingleCharacterFilter(final IntFunction<CharSequence> delegate) {
         this.delegate = delegate;
     }
 
+    /**
+     * Applies the delegate function and returns the result only if it is a single character.
+     *
+     * @param value the Unicode codepoint to process
+     * @return the delegate's result if it is exactly one character, otherwise an empty string
+     */
     @Override
     public CharSequence apply(final int value) {
         final CharSequence result = delegate.apply(value);

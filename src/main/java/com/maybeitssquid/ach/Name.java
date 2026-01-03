@@ -21,14 +21,23 @@ import static java.lang.Character.*;
  * </ul>
  */
 public class Name extends Categorize {
+    /** Unicode codepoint for CIRCLED ZERO WITH SLASH (U+1F10D), transliterates to {@code 0}. */
     public static final int UNICODE_CIRCLED_ZERO_WITH_SLASH = 0x1F10D;
+    /** Unicode codepoint for TRIPLE SOLIDUS BINARY RELATION (U+2AFB), transliterates to {@code ///}. */
     public static final int UNICODE_TRIPLE_SOLIDUS_BINARY_RELATION = 0x2AFB;
+    /** Unicode codepoint for DOUBLE SOLIDUS OPERATOR (U+2AFD), transliterates to {@code //}. */
     public static final int UNICODE_DOUBLE_SOLIDUS_OPERATOR = 0x2AFD;
+    /** Unicode codepoint for OCR DOUBLE BACKSLASH (U+244A), transliterates to {@code \\}. */
     public static final int UNICODE_OCR_DOUBLE_BACKSLASH = 0x244A;
+    /** Unicode codepoint for COLON SIGN (U+20A1), the Colombian currency symbol. Not transliterated to colon. */
     public static final int UNICODE_COLON_SIGN = 0x20A1;
+    /** Unicode codepoint for COLON EQUALS (U+2254), transliterates to {@code :=}. */
     public static final int UNICODE_COLON_EQUALS = 0x2254;
+    /** Unicode codepoint for EQUALS COLON (U+2255), transliterates to {@code =:}. */
     public static final int UNICODE_EQUALS_COLON = 0x2255;
+    /** Unicode codepoint for CIRCLED DOLLAR SIGN WITH OVERLAID BACKSLASH (U+1F10F), transliterates to {@code $}. */
     public static final int UNICODE_CIRCLED_DOLLAR_SIGN_WITH_OVERLAID_BACKSLASH = 0x1F10F;
+    /** Unicode codepoint for CIRCLED C WITH OVERLAID BACKSLASH (U+1F16E), transliterates to {@code C}. */
     public static final int UNICODE_CIRCLED_C_WITH_OVERLAID_BACKSLASH = 0x1F16E;
     private static final Pattern latin = Pattern.compile("LATIN (SMALL |CAPITAL )?LETTER ([A-Z]+ )*(?<letter>\\p{Upper}\\p{Upper}?)\\b");
 
@@ -193,6 +202,14 @@ public class Name extends Categorize {
         }
     }
 
+    /**
+     * Converts solidus (slash) and backslash characters to ASCII equivalents.
+     *
+     * @param name      the Unicode name of the character
+     * @param codepoint the codepoint to process
+     * @return the ASCII equivalent: {@code \} for reverse solidus/backslash,
+     *         {@code /} for solidus/slash, with special handling for double variants
+     */
     protected CharSequence solidus(final String name, final int codepoint) {
         if (name.contains("REVERSE SOLIDUS")) {
             return "\\";
@@ -213,6 +230,12 @@ public class Name extends Categorize {
         }
     }
 
+    /**
+     * Converts equality-related characters to ASCII equivalents.
+     *
+     * @param codepoint the codepoint to process
+     * @return {@code :=} for COLON EQUALS, {@code =:} for EQUALS COLON, or {@code =} for other equality symbols
+     */
     protected CharSequence equal(final int codepoint) {
         return switch (codepoint) {
             case UNICODE_COLON_EQUALS -> ":=";
@@ -232,24 +255,27 @@ public class Name extends Categorize {
      * <p>Recognized patterns include:
      * <ul>
      *   <li>LATIN [CAPITAL|SMALL] LETTER → corresponding letter</li>
-     *   <li>REVERSE SOLIDUS, BACKSLASH → {@code \} (exceptions noted)
-     *   <li>SOLIDUS, SLASH → {@code /} (exceptions noted)
-     *   <li>EQUAL → {@code =} (special cases for colon equals and equals colon)
-     *   <li>AMPERSAND → {@code &}
-     *   <li>FULL STOP → {@code .} (does not handle composed "[DIGIT|NUMBER] x FULL STOP")
-     *   <li>APOSTROPHE → {@code '}
-     *   <li>EXCLAMATION MARK → {@code !}
-     *   <li>QUESTION → {@code ?}
-     *   <li>INTERROBANG → {@code ?!}
-     *   <li>ASTERISK → {@code *}
-     *   <li>SEMICOLON → {@code ;}
-     *   <li>PERCENT → {@code %}
-     *   <li>PLUS SIGN → {@code +}
-     *   <li>MULTIPLICATION → {@code X}
-     *   <li>COMMA → {@code ,}
-     *   <li>COLON → {@code :} (except Colombian currency symbol)
-     *   <li>TILDE → {@code ~}
+     *   <li>REVERSE SOLIDUS, BACKSLASH → {@code \} (exceptions noted)</li>
+     *   <li>SOLIDUS, SLASH → {@code /} (exceptions noted)</li>
+     *   <li>EQUAL → {@code =} (special cases for colon equals and equals colon)</li>
+     *   <li>AMPERSAND → {@code &}</li>
+     *   <li>FULL STOP → {@code .} (does not handle composed "[DIGIT|NUMBER] x FULL STOP")</li>
+     *   <li>APOSTROPHE → {@code '}</li>
+     *   <li>EXCLAMATION MARK → {@code !}</li>
+     *   <li>QUESTION → {@code ?}</li>
+     *   <li>INTERROBANG → {@code ?!}</li>
+     *   <li>ASTERISK → {@code *}</li>
+     *   <li>SEMICOLON → {@code ;}</li>
+     *   <li>PERCENT → {@code %}</li>
+     *   <li>PLUS SIGN → {@code +}</li>
+     *   <li>MULTIPLICATION → {@code X}</li>
+     *   <li>COMMA → {@code ,}</li>
+     *   <li>COLON → {@code :} (except Colombian currency symbol)</li>
+     *   <li>TILDE → {@code ~}</li>
      * </ul>
+     *
+     * @param codepoint the Unicode codepoint to process
+     * @return the ASCII equivalent based on name patterns, or the original character via {@link #identity} if no pattern matches
      */
     protected CharSequence byName(final int codepoint) {
         final String name = Character.getName(codepoint);

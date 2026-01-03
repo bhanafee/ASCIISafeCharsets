@@ -27,10 +27,15 @@ import java.util.function.IntFunction;
  */
 public class TransliteratingASCIIProvider extends CharsetProvider {
 
+    /** Canonical name for the strict ACH character set. */
     public static final String ACH_CHARSET = "X-ACH";
+    /** Alias for the strict ACH character set. */
     public static final String ACH_CHARSET_ALIAS = "ACH";
+    /** Canonical name for the ACH character set with newline support. */
     public static final String ACH_NEWLINES_CHARSET = "X-ACH-Newlines";
+    /** Canonical name for the transliterating character set. */
     public static final String TRANSLITERATING_CHARSET = "X-Transliterating";
+    /** Canonical name for the single-byte transliterating character set. */
     public static final String TRANSLITERATING_SINGLE_BYTE_CHARSET = "X-Transliterating-Single-Byte";
 
     private Charset ach;

@@ -21,8 +21,7 @@ import static java.lang.Character.*;
  *     converted to ASCII double quote {@code "}</li>
  *     <li>{@code U+FFFD} {@link #UNICODE_REPLACEMENT} is converted to ASCII question mark {@code ?}</li>
  * </ul>
- * <p>
- */
+  */
 public class Categorize extends Chainable {
 
     /**
@@ -35,6 +34,9 @@ public class Categorize extends Chainable {
      */
     public static final int UNICODE_NEL = 0x0085;
 
+    /**
+     * Identity function that converts a codepoint to its string representation without transformation.
+     */
     protected static final IntFunction<CharSequence> identity = Character::toString;
 
     private final CharSequence lineSeparator;
@@ -75,14 +77,32 @@ public class Categorize extends Chainable {
         return lineSeparator;
     }
 
+    /**
+     * Converts start punctuation codepoints to their ASCII equivalent.
+     *
+     * @param codepoint the start punctuation codepoint
+     * @return ASCII open parenthesis {@code (}
+     */
     protected CharSequence startPunctuation(final int codepoint) {
         return "(";
     }
 
+    /**
+     * Converts end punctuation codepoints to their ASCII equivalent.
+     *
+     * @param codepoint the end punctuation codepoint
+     * @return ASCII close parenthesis {@code )}
+     */
     protected CharSequence endPunctuation(final int codepoint) {
         return ")";
     }
 
+    /**
+     * Converts quote punctuation codepoints to their ASCII equivalent.
+     *
+     * @param codepoint the quote punctuation codepoint
+     * @return ASCII double quote {@code "}
+     */
     protected CharSequence quotePunctuation(final int codepoint) {
         return "\"";
     }
