@@ -5,6 +5,8 @@ import java.nio.CharBuffer;
 import java.nio.charset.*;
 import java.util.function.IntFunction;
 
+import static com.maybeitssquid.ach.Chainable.ASCII;
+
 /**
  * A custom charset implementation that transliterates Unicode code points to ASCII characters
  * using a configurable transliteration function.
@@ -12,21 +14,29 @@ import java.util.function.IntFunction;
  * This charset provides bidirectional encoding and decoding between Unicode text and a restricted
  * ASCII-based byte representation. It uses a supplied transliterator function to map Unicode code
  * points to their ASCII equivalents (which may be zero or more characters).
-*/
+ */
 public class TransliteratingASCII extends Charset {
 
-    private final IntFunction<char[]> transliterator;
+    private final IntFunction<CharSequence> transliterator;
 
+    private static String[] aliases(final String[] names) {
+        if (names.length > 1) {
+            final String[] aliases = new String[names.length - 1];
+            System.arraycopy(names, 1, aliases, 0, aliases.length);
+            return aliases;
+        } else {
+            return new String[0];
+        }
+    }
     /**
      * Initializes a new charset with the given canonical name and alias
      * set.
      *
-     * @param canonicalName  The canonical name of this charset
-     * @param aliases        An array of this charset's aliases, or null if it has no aliases
      * @param transliterator The function to convert a code point into zero or more characters
+     * @param names          The canonical name of this charset followed by any aliases
      */
-    protected TransliteratingASCII(final String canonicalName, final String[] aliases, final IntFunction<char[]> transliterator) {
-        super(canonicalName, aliases);
+    protected TransliteratingASCII(final IntFunction<CharSequence> transliterator, final String... names) {
+        super(names[0], aliases(names));
         this.transliterator = transliterator;
     }
 
@@ -50,20 +60,32 @@ public class TransliteratingASCII extends Charset {
      * </p>
      *
      * @return {@code true} if all ASCII characters (0x00-0x7F) are mapped to themselves
-     *         by the transliterator; {@code false} otherwise
+     * by the transliterator; {@code false} otherwise
      * @see #contains(Charset)
      * @see StandardCharsets#US_ASCII
      */
     public boolean containsASCII() {
-        for (char ch = 0; ch < 0x0080; ch++) {
-            char[] encoding = transliterator.apply(ch);
-            if (encoding == null || encoding.length != 1 || encoding[0] != ch) {
+        for (char ch = 0; ch < ASCII; ch++) {
+            CharSequence encoding = transliterator.apply(ch);
+            if (encoding == null || encoding.length() != 1 || encoding.charAt(0) != ch) {
                 return false;
             }
         }
         return true;
     }
 
+    /**
+     * Tests whether this charset contains the given charset.
+     *
+     * <p>Behavior: returns {@code true} if {@code cs} is this instance; {@code false} if
+     * {@code cs} is {@code null}; delegates to {@link #containsASCII()} when
+     * {@link java.nio.charset.StandardCharsets#US_ASCII} is supplied; otherwise {@code false}.</p>
+     *
+     * @param cs the charset to test, may be {@code null}
+     * @return {@code true} if this charset contains {@code cs} per {@link java.nio.charset.Charset#contains(Charset)}
+     * @see java.nio.charset.Charset#contains(Charset)
+     * @see #containsASCII()
+     */
     @Override
     public boolean contains(final Charset cs) {
         if (this.equals(cs)) {
@@ -77,6 +99,19 @@ public class TransliteratingASCII extends Charset {
         }
     }
 
+    /**
+     * Creates a decoder that transliterates single bytes (0x00–0x7F) to characters. Only characters that are allowed
+     * by the configured transliteration function are returned.
+     *
+     * <p>Recommendation: prefer standard decoders (e.g., UTF-8, US-ASCII,
+     * ISO-8859-1, or windows-1252) for general-purpose ACH decoding; they handle
+     * a wider range of inputs. Use this decoder only when input processing must
+     * be extremely rigid and only exactly compliant input is allowed.</p>
+     *
+     * @return a {@link java.nio.charset.CharsetDecoder} that applies the transliterator to single bytes
+     * @see java.nio.charset.CharsetDecoder
+     * @see java.nio.charset.StandardCharsets
+     */
     @Override
     public CharsetDecoder newDecoder() {
         return new CharsetDecoder(this, 1F, 1F) {
@@ -85,12 +120,12 @@ public class TransliteratingASCII extends Charset {
                 while (in.hasRemaining()) {
                     final byte b = in.get(in.position());
                     if (b >= 0) {
-                        final char[] transliterated = transliterator.apply(b);
-                        if (transliterated == null || transliterated.length == 0) {
+                        final CharSequence transliterated = transliterator.apply(b);
+                        if (transliterated == null || transliterated.isEmpty()) {
                             return CoderResult.unmappableForLength(1);
-                        } else if (transliterated.length <= out.remaining()) {
+                        } else if (out.remaining() >= 1) {
                             in.position(in.position() + 1);
-                            out.put(transliterated);
+                            out.put((char) b);
                         } else {
                             return CoderResult.OVERFLOW;
                         }
@@ -103,6 +138,20 @@ public class TransliteratingASCII extends Charset {
         };
     }
 
+    /**
+     * Creates an encoder that maps Unicode code points to ASCII bytes using the transliterator.
+     *
+     * <p>Behavior: the transliterator is applied per code point. If the result is empty,
+     * the input is reported unmappable for its length (1 or 2 for supplementary code points).
+     * If any resulting character is > 0x7F the input is unmappable. If the output buffer
+     * lacks space the encoder returns {@link java.nio.charset.CoderResult#OVERFLOW}.
+     * Valid transliterations are written as their low-7-bit byte values.</p>
+     *
+     * <p>The encoder consumes the correct input length for supplementary code points
+     * and uses {@code '?'} as the replacement byte for unmappable input.</p>
+     *
+     * @return a {@link java.nio.charset.CharsetEncoder} that emits ASCII bytes per the transliterator
+     */
     @Override
     public CharsetEncoder newEncoder() {
         return new CharsetEncoder(this, 1F, 1F, new byte[]{(byte) '?'}) {
@@ -112,15 +161,17 @@ public class TransliteratingASCII extends Charset {
                     final int codepoint = Character.codePointAt(in, 0);
                     final int length = Character.isSupplementaryCodePoint(codepoint) ? 2 : 1;
 
-                    final char[] transliterated = transliterator.apply(codepoint);
-                    if (transliterated.length == 0) {
+                    final CharSequence transliterated = transliterator.apply(codepoint);
+                    if (transliterated == null || transliterated.isEmpty()) {
                         return CoderResult.unmappableForLength(length);
-                    } else if (transliterated.length > out.remaining()) {
+                    } else if (transliterated.length() > out.remaining()) {
                         return CoderResult.OVERFLOW;
                     } else {
                         final int mark = out.position();
-                        for (final char c : transliterated) {
-                            if (c > 0x007F) {
+                        final int len = transliterated.length();
+                        for (int i = 0; i < len; i++) {
+                            final char c = transliterated.charAt(i);
+                            if (c >= ASCII) {
                                 out.position(mark);
                                 return CoderResult.unmappableForLength(length);
                             } else {
