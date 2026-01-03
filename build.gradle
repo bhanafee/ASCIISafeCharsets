@@ -21,6 +21,6 @@ java {
 
 testing {
     suites.test {
-        useJUnitJupiter()
+        useJUnitJupiter(libs.versions.junit)
     }
 }
