@@ -1,2 +1,13 @@
 [versions]
 junit = { strictly = "[5,)", prefer = "6.0.+" }
+spotless = "7.0.2"
+owasp-dependencycheck = "12.1.0"
+versions = "0.51.0"
+openrewrite = "7.25.0"
+rewrite-recipe-bom = "3.6.1"
+
+[plugins]
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
+owasp-dependencycheck = { id = "org.owasp.dependencycheck", version.ref = "owasp-dependencycheck" }
+versions = { id = "com.github.ben-manes.versions", version.ref = "versions" }
+openrewrite = { id = "org.openrewrite.rewrite", version.ref = "openrewrite" }

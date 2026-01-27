@@ -2,6 +2,10 @@ plugins {
     id 'java-library'
     id 'jvm-test-suite'
     id 'maven-publish'
+    alias(libs.plugins.spotless)
+    alias(libs.plugins.owasp.dependencycheck)
+    alias(libs.plugins.versions)
+    alias(libs.plugins.openrewrite)
 }
 
 group = 'com.maybeitssquid'
@@ -22,5 +26,36 @@ java {
 testing {
     suites.test {
         useJUnitJupiter(libs.versions.junit)
+    }
+}
+
+spotless {
+    java {
+        googleJavaFormat()
+        removeUnusedImports()
+    }
+}
+
+rewrite {
+    activeRecipe(
+        'org.openrewrite.java.migrate.UpgradeToJava21',
+        'org.openrewrite.staticanalysis.CommonStaticAnalysis',
+        'org.openrewrite.java.testing.junit5.JUnit5BestPractices'
+    )
+}
+
+dependencies {
+    rewrite(platform("org.openrewrite.recipe:rewrite-recipe-bom:${libs.versions.rewrite.recipe.bom.get()}"))
+    rewrite('org.openrewrite.recipe:rewrite-migrate-java')
+    rewrite('org.openrewrite.recipe:rewrite-static-analysis')
+    rewrite('org.openrewrite.recipe:rewrite-testing-frameworks')
+}
+
+tasks.named('dependencyUpdates').configure {
+    gradleReleaseChannel = 'current'
+    rejectVersionIf {
+        candidate.version.contains('-alpha') ||
+            candidate.version.contains('-beta') ||
+            candidate.version.contains('-rc')
     }
 }
