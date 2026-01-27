@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
  * These tests ensure that the caching mechanism functions as expected, both for ASCII and non-ASCII
  * codepoints, along with verifying correct delegation on cache misses.
  */
-public class CacheTest extends AbstractChainableTest{
+class CacheTest extends AbstractChainableTest{
 
     @Override
     protected Cache createProcessor() {
@@ -23,7 +23,7 @@ public class CacheTest extends AbstractChainableTest{
     }
 
     @Test
-    public void testApplyCachesAsciiValue() {
+    void applyCachesAsciiValue() {
         Cache cache = createProcessor();
         final int asciiCodepoint = 65;
 
@@ -34,7 +34,7 @@ public class CacheTest extends AbstractChainableTest{
     }
 
     @Test
-    public void testApplyCachesNonAsciiValue() {
+    void applyCachesNonAsciiValue() {
         Cache cache = createProcessor();
         final int nonAsciiCodepoint = 2000;
 
@@ -45,7 +45,7 @@ public class CacheTest extends AbstractChainableTest{
     }
 
     @Test
-    public void testApplyReturnsExistingCachedAsciiValue() {
+    void applyReturnsExistingCachedAsciiValue() {
         Cache cache = createProcessor();
         int asciiCodepoint = 66; // 'B'
         CharSequence preCachedValue = "PreCached:66";
@@ -57,7 +57,7 @@ public class CacheTest extends AbstractChainableTest{
     }
 
     @Test
-    public void testApplyReturnsExistingCachedNonAsciiValue() {
+    void applyReturnsExistingCachedNonAsciiValue() {
         Cache cache = createProcessor();
         int nonAsciiCodepoint = 3000;
         CharSequence preCachedValue = "PreCached:3000";
@@ -69,7 +69,7 @@ public class CacheTest extends AbstractChainableTest{
     }
 
     @Test
-    public void testApplyHandlesNullFromDelegate() {
+    void applyHandlesNullFromDelegate() {
         IntFunction<CharSequence> delegate = value -> null; // Simulate delegate returning null
         Cache cache = new Cache(delegate);
 
@@ -85,7 +85,7 @@ public class CacheTest extends AbstractChainableTest{
     }
 
     @Test
-    public void testApplyDoesNotInterfereWithSeparateCodepoints() {
+    void applyDoesNotInterfereWithSeparateCodepoints() {
         Cache cache = createProcessor();
 
         int codepoint1 = 100;

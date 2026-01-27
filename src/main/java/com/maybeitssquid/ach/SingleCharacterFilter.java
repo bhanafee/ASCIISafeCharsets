@@ -30,6 +30,6 @@ public class SingleCharacterFilter implements IntFunction<CharSequence> {
     @Override
     public CharSequence apply(final int value) {
         final CharSequence result = delegate.apply(value);
-        return (result != null && (result.length() == 1)) ? result : "";
+        return result != null && (result.length() == 1) ? result : "";
     }
 }

@@ -10,7 +10,7 @@ import java.util.function.IntFunction;
  * The default {@link #apply(int)} implementation facilitates chaining by feeding the output of
  * the processing step into a delegate function.
  */
-abstract public class Chainable implements IntFunction<CharSequence> {
+public abstract class Chainable implements IntFunction<CharSequence> {
     /**
      * The upper bound for ASCII codepoints (exclusive).
      */
@@ -26,7 +26,7 @@ abstract public class Chainable implements IntFunction<CharSequence> {
      *
      * @param delegate the next function to apply in the chain
      */
-    public Chainable(final IntFunction<CharSequence> delegate) {
+    protected Chainable(final IntFunction<CharSequence> delegate) {
         this.delegate = delegate;
     }
 
@@ -36,7 +36,7 @@ abstract public class Chainable implements IntFunction<CharSequence> {
      * @param codepoint the Unicode codepoint to process
      * @return the transformed character sequence
      */
-    abstract protected CharSequence process(final int codepoint);
+    protected abstract CharSequence process(final int codepoint);
 
     /**
      * Invokes the delegate function on the given codepoint.
@@ -67,7 +67,9 @@ abstract public class Chainable implements IntFunction<CharSequence> {
             default -> {
                 final StringBuilder builder = new StringBuilder(result.length());
                 for (int i = 0; i < result.length(); i++) {
-                    if (Character.isLowSurrogate(result.charAt(i))) continue;
+                    if (Character.isLowSurrogate(result.charAt(i))) {
+                        continue;
+                    }
                     final int nextPoint = Character.codePointAt(result, i);
                     final CharSequence chunk = delegate(nextPoint);
                     builder.append(chunk);

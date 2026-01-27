@@ -14,7 +14,7 @@ class ASCIIFilterTest {
 
     @Test
     @DisplayName("Default constructor should allow all ASCII characters (0-127)")
-    void testAllowAllAsciiByDefault() {
+    void allowAllAsciiByDefault() {
         ASCIIFilter filter = new ASCIIFilter();
 
         for (int i = 0; i < ASCII_LIMIT; i++) {
@@ -28,7 +28,7 @@ class ASCIIFilterTest {
 
     @Test
     @DisplayName("Filter should reject characters >= 128 regardless of configuration")
-    void testRejectNonAscii() {
+    void rejectNonAscii() {
         ASCIIFilter filter = new ASCIIFilter();
 
         // Test boundary and a few extended characters
@@ -43,7 +43,7 @@ class ASCIIFilterTest {
 
     @Test
     @DisplayName("Constructor with specific categories should block those characters")
-    void testBlockSpecificCategories() {
+    void blockSpecificCategories() {
         // Block ASCII Control characters (0-31, 127)
         ASCIIFilter filter = new ASCIIFilter(Character.CONTROL);
 
@@ -63,7 +63,7 @@ class ASCIIFilterTest {
 
     @Test
     @DisplayName("Constructor should handle blocking multiple categories")
-    void testBlockMultipleCategories() {
+    void blockMultipleCategories() {
         // Block Digits and Uppercase Letters
         ASCIIFilter filter = new ASCIIFilter(Character.DECIMAL_DIGIT_NUMBER, Character.UPPERCASE_LETTER);
 
@@ -75,14 +75,14 @@ class ASCIIFilterTest {
 
     @Test
     @DisplayName("Constructor handles null input gracefully by blocking nothing")
-    void testConstructorNull() {
+    void constructorNull() {
         ASCIIFilter filter = new ASCIIFilter((byte[]) null);
         assertEquals("A", filter.apply('A').toString());
     }
 
     @Test
     @DisplayName("Constructor handles empty array gracefully by blocking nothing")
-    void testConstructorEmpty() {
+    void constructorEmpty() {
         ASCIIFilter filter = new ASCIIFilter();
         assertEquals("A", filter.apply('A').toString());
     }
@@ -90,7 +90,7 @@ class ASCIIFilterTest {
     @ParameterizedTest
     @ValueSource(ints = {0, 10, 127})
     @DisplayName("Boundary testing for ASCII range")
-    void testBoundaries(int codepoint) {
+    void boundaries(int codepoint) {
         ASCIIFilter filter = new ASCIIFilter(); // No blocks
         assertEquals(Character.toString(codepoint), filter.apply(codepoint).toString());
     }

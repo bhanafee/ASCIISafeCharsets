@@ -59,3 +59,6 @@ tasks.named('dependencyUpdates').configure {
             candidate.version.contains('-rc')
     }
 }
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+}

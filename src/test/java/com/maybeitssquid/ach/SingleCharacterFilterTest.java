@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class SingleCharacterFilterTest {
 
     @Test
-    void testApplyWithSingleCharacterOutput() {
+    void applyWithSingleCharacterOutput() {
         // Arrange: A delegate that returns a single character for the given integer
         IntFunction<CharSequence> delegate = value -> "A";
         SingleCharacterFilter filter = new SingleCharacterFilter(delegate);
@@ -27,7 +27,7 @@ class SingleCharacterFilterTest {
     }
 
     @Test
-    void testApplyWithEmptyOutput() {
+    void applyWithEmptyOutput() {
         // Arrange: A delegate that returns an empty string
         IntFunction<CharSequence> delegate = value -> "";
         SingleCharacterFilter filter = new SingleCharacterFilter(delegate);
@@ -40,7 +40,7 @@ class SingleCharacterFilterTest {
     }
 
     @Test
-    void testApplyWithMultiCharacterOutput() {
+    void applyWithMultiCharacterOutput() {
         // Arrange: A delegate that returns multiple characters
         IntFunction<CharSequence> delegate = value -> "AB";
         SingleCharacterFilter filter = new SingleCharacterFilter(delegate);
@@ -53,7 +53,7 @@ class SingleCharacterFilterTest {
     }
 
     @Test
-    void testApplyWithNullOutput() {
+    void applyWithNullOutput() {
         // Arrange: A delegate that returns null
         IntFunction<CharSequence> delegate = value -> null;
         SingleCharacterFilter filter = new SingleCharacterFilter(delegate);

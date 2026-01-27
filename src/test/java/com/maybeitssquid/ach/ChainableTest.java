@@ -35,7 +35,7 @@ class ChainableTest {
     }
 
     @Test
-    void testApplyWithEmptyProcessResult() {
+    void applyWithEmptyProcessResult() {
         Chainable chainable = new Chainable(delegate -> "ignored") {
             @Override
             protected CharSequence process(int codepoint) {
@@ -48,7 +48,7 @@ class ChainableTest {
     }
 
     @Test
-    void testApplyWithSingleCharacterResult() {
+    void applyWithSingleCharacterResult() {
         Chainable chainable = new Chainable(delegate -> "X") {
             @Override
             protected CharSequence process(int codepoint) {
@@ -61,7 +61,7 @@ class ChainableTest {
     }
 
     @Test
-    void testApplyWithMultipleCharacterResult() {
+    void applyWithMultipleCharacterResult() {
         Chainable chainable = new Chainable(codepoint -> String.valueOf((char) (codepoint + 1))) {
             @Override
             protected CharSequence process(int codepoint) {
@@ -74,7 +74,7 @@ class ChainableTest {
     }
 
     @Test
-    void testApplyWithUppercaseChainable() {
+    void applyWithUppercaseChainable() {
         Chainable chainable = new UppercaseChainable(codepoint -> String.valueOf((char) codepoint));
 
         CharSequence result = chainable.apply('a');
@@ -82,7 +82,7 @@ class ChainableTest {
     }
 
     @Test
-    void testApplyWithMultipleDelegates() {
+    void applyWithMultipleDelegates() {
         Chainable doublingChainable = new DoublingChainable(Character::toString);
         Chainable uppercaseChainable = new UppercaseChainable(doublingChainable);
 
@@ -91,7 +91,7 @@ class ChainableTest {
     }
 
     @Test
-    void testApplyWithUnicodeCodePoints() {
+    void applyWithUnicodeCodePoints() {
         Chainable unicodeChainable = new Chainable(Character::toString) {
             @Override
             protected CharSequence process(int codepoint) {
