@@ -2,6 +2,8 @@ plugins {
     id 'java-library'
     id 'jvm-test-suite'
     id 'maven-publish'
+    alias(libs.plugins.spotless)
+    alias(libs.plugins.owasp.dependencycheck)
 }
 
 group = 'com.maybeitssquid'
@@ -22,5 +24,58 @@ java {
 testing {
     suites.test {
         useJUnitJupiter(libs.versions.junit)
+    }
+}
+
+spotless {
+    java {
+        googleJavaFormat()
+        removeUnusedImports()
+    }
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+}
+
+tasks.withType(Javadoc).configureEach {
+    options {
+        encoding = 'UTF-8'
+        links 'https://docs.oracle.com/en/java/javase/21/docs/api/'
+        addBooleanOption('html5', true)
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            name = 'GitHubPackages'
+            url = uri("https://maven.pkg.github.com/${System.env.GITHUB_REPOSITORY ?: 'bhanafee/ACHCharset'}")
+            credentials {
+                username = System.env.USERNAME ?: System.env.GITHUB_ACTOR
+                password = System.env.TOKEN ?: System.env.GITHUB_TOKEN
+            }
+        }
+    }
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            pom {
+                name = 'ACHCharset'
+                description = 'Java Charset implementation for ACH transliterating ASCII encoding'
+                url = 'https://github.com/bhanafee/ACHCharset'
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://opensource.org/licenses/MIT'
+                    }
+                }
+                scm {
+                    url = 'https://github.com/bhanafee/ACHCharset'
+                    connection = 'scm:git:git://github.com/bhanafee/ACHCharset.git'
+                    developerConnection = 'scm:git:ssh://github.com/bhanafee/ACHCharset.git'
+                }
+            }
+        }
     }
 }
