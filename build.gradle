@@ -9,13 +9,8 @@ plugins {
 group = 'com.maybeitssquid'
 
 def baseVersion = '1.0'
-def isSnapshot = System.env.GITHUB_REF != 'refs/heads/main' || System.env.CI == null
-if (isSnapshot) {
-    def timestamp = new Date().format("yyyyMMdd.HHmmss")
-    version = "${baseVersion}-${timestamp}"
-} else {
-    version = baseVersion
-}
+def timestamp = new Date().format("yyyyMMdd.HHmmss")
+version = "${baseVersion}-${timestamp}"
 
 repositories {
     mavenCentral()
