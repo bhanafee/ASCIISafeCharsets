@@ -1,7 +1,7 @@
 [versions]
 junit = { strictly = "[5,)", prefer = "6.0.+" }
 spotless = "8.2.1"
-owasp-dependencycheck = "12.1.0"
+owasp-dependencycheck = "12.2.0"
 
 [plugins]
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
