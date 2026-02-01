@@ -8,8 +8,8 @@ plugins {
 
 group = 'com.maybeitssquid'
 
-def baseVersion = '1.0'
-def timestamp = new Date().format("yyyyMMdd.HHmmss")
+def baseVersion = '1.0.0'
+def timestamp = new Date().format("yyyyMMddHHmmss")
 version = "${baseVersion}-${timestamp}"
 
 repositories {
