@@ -16,6 +16,14 @@ repositories {
     mavenCentral()
 }
 
+dependencies {
+    constraints {
+        libs.bundles.security.patches.get().each {
+            add('implementation', it)
+        }
+    }
+}
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
