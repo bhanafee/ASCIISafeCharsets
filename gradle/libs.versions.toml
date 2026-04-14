@@ -1,7 +1,7 @@
 [versions]
 junit = { strictly = "[5,)", prefer = "6.0.+" }
 spotless = "8.4.0"
-owasp-dependencycheck = "12.2.0"
+owasp-dependencycheck = "12.2.1"
 
 [libraries]
 patch-ghsa-72hv-8253-57qq = { module = "com.fasterxml.jackson.core:jackson-core", version = { strictly = "[2.21.1,)", prefer = "2.21.1" } }
