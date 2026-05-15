@@ -71,6 +71,7 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             from components.java
+            artifactId = 'achcharset'
             pom {
                 name = 'ACHCharset'
                 description = 'Java Charset implementation for ACH transliterating ASCII encoding'
