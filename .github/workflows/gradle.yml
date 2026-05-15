@@ -57,11 +57,32 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Publish to GitHub Packages
+        id: publish
+        continue-on-error: true
         run: ./gradlew publish --info --stacktrace
         env:
           GITHUB_REPOSITORY: ${{ github.repository }}
           USERNAME: ${{ github.actor }}
           TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Diagnose 422 with curl
+        if: steps.publish.outcome == 'failure'
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -x
+          JAR=$(ls build/libs/ACHCharset-*.jar | grep -v sources | grep -v javadoc | head -1)
+          echo "Uploading $JAR"
+          VERSION=$(basename "$JAR" .jar | sed 's/^ACHCharset-//')
+          URL="https://maven.pkg.github.com/${GITHUB_REPOSITORY}/io/github/bhanafee/ACHCharset/${VERSION}/ACHCharset-${VERSION}.jar"
+          echo "PUT $URL"
+          curl -v -X PUT \
+            -u "bhanafee:${TOKEN}" \
+            -H "Content-Type: application/java-archive" \
+            --data-binary "@${JAR}" \
+            "$URL"
+          echo "exit=$?"
+          exit 1
 
   dependency-submission:
     runs-on: ubuntu-latest
