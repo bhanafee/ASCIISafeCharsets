@@ -24,10 +24,18 @@ repositories {
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(libs.versions.java.get() as int)
+        languageVersion = JavaLanguageVersion.of(libs.versions.java.get())
     }
     withSourcesJar()
     withJavadocJar()
+}
+
+dependencies {
+    constraints {
+        libs.bundles.security.patches.get().each {
+            add('implementation', it)
+        }
+    }
 }
 
 testing {
@@ -38,13 +46,16 @@ testing {
 
 spotless {
     java {
+        targetExclude 'src/*/java/module-info.java'
         googleJavaFormat()
         removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
     }
 }
 
-tasks.withType(Test).configureEach {
-    useJUnitPlatform()
+dependencyCheck {
+    failBuildOnCVSS = 7
 }
 
 tasks.withType(Javadoc).configureEach {

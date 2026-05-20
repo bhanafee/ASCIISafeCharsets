@@ -3,11 +3,11 @@
 java = "21"
 
 # Plugin versions
-spotless = "8.5.1"
-owasp-dependencycheck = "12.2.2"
+spotless = "8.+"
+owasp-dependencycheck = "12.+"
 
 # Testing
-junit = { strictly = "[5,)", prefer = "6.0.+" }
+junit = { strictly = "[5,)", prefer = "5.12.+" }
 
 [libraries]
 # Security patches — open-range floor constraints for vulnerable transitive dependencies
