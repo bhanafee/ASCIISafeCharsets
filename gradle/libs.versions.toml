@@ -1,9 +1,16 @@
 [versions]
-junit = { strictly = "[5,)", prefer = "6.0.+" }
+# Java toolchain
+java = "21"
+
+# Plugin versions
 spotless = "8.5.1"
 owasp-dependencycheck = "12.2.2"
 
+# Testing
+junit = { strictly = "[5,)", prefer = "6.0.+" }
+
 [libraries]
+# Security patches — open-range floor constraints for vulnerable transitive dependencies
 patch-ghsa-72hv-8253-57qq = { module = "com.fasterxml.jackson.core:jackson-core", version = { strictly = "[2.21.1,)", prefer = "2.21.1" } }
 
 [bundles]
