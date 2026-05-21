@@ -12,7 +12,7 @@ plugins {
     alias(libs.plugins.owasp.dependencycheck)
 }
 
-group = 'io.github.bhanafee'
+group = 'com.maybeitssquid'
 
 def baseVersion = '1.0.0'
 def timestamp = new Date().format("yyyyMMddHHmmss")
