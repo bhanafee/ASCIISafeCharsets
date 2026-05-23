@@ -4,6 +4,12 @@ ACH files are allowed to use only a subset of US-ASCII. This character set ensur
 encoded or decoded. The allowed subset consists of "ASCII values greater than hexadecimal `0x1F`." US-ASCII itself is
 limited to 7-bits, resulting in a range from `0x20` through `0x7F`.
 
+## Links
+
+- [GitHub repository](https://github.com/bhanafee/ACHCharset)
+- [Javadoc](https://bhanafee.github.io/ACHCharset/javadoc/)
+- [Code of Conduct](https://bhanafee.github.io/ACHCharset/CODE_OF_CONDUCT.html)
+
 ## Newline handling
 
 Although the ACH specification does not allow values below `0x20` or above `0x7F`, there are some exceptions implemented
