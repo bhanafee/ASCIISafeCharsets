@@ -44,7 +44,7 @@ The default is to replace the character, which is often the best approach. ACH f
 format, so ignoring errors by skipping characters may cause downstream processing to fail. Reporting errors with an
 exception may lead to an unrecoverable error requiring manual intervention.
 
-# Examples
+## Examples
 
 ## Decoding an `InputStream` to a `Reader`
 
