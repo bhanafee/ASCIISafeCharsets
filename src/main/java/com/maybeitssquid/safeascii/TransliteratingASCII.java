@@ -1,6 +1,6 @@
-package com.maybeitssquid.ach;
+package com.maybeitssquid.safeascii;
 
-import static com.maybeitssquid.ach.Chainable.ASCII;
+import static com.maybeitssquid.safeascii.Chainable.ASCII;
 
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -104,7 +104,7 @@ public class TransliteratingASCII extends Charset {
    * that are allowed by the configured transliteration function are returned.
    *
    * <p>Recommendation: prefer standard decoders (e.g., UTF-8, US-ASCII, ISO-8859-1, or
-   * windows-1252) for general-purpose ACH decoding; they handle a wider range of inputs. Use this
+   * windows-1252) for general-purpose ASCII decoding; they handle a wider range of inputs. Use this
    * decoder only when input processing must be extremely rigid and only exactly compliant input is
    * allowed.
    *

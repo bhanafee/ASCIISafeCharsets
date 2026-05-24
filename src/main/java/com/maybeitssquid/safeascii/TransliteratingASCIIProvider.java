@@ -1,4 +1,4 @@
-package com.maybeitssquid.ach;
+package com.maybeitssquid.safeascii;
 
 import java.nio.charset.Charset;
 import java.nio.charset.spi.CharsetProvider;
@@ -8,35 +8,32 @@ import java.util.List;
 import java.util.function.IntFunction;
 
 /**
- * A {@link CharsetProvider} that supplies specialized ASCII character sets for ACH (Automated
- * Clearing House) file processing. This provider offers four distinct character set
- * implementations:
+ * A {@link CharsetProvider} that supplies ASCII-safe character sets for encoding Unicode text. This
+ * provider offers four distinct character set implementations:
  *
  * <dl>
- *   <dt>ACH, X-ACH
- *   <dd>A strict interpretation of characters valid for ACH files. Allows for 0x20 through 0x7E,
- *       inclusive. Control characters, including newlines, are reported as unmappable.
- *   <dt>X-ACH-Newlines
- *   <dd>Extended ASCII character set that includes linefeed (0x0A) and carriage return (0x0D)
- *       characters, while maintaining the base ACH character restrictions.
+ *   <dt>ASCII-Printable
+ *   <dd>Strict printable ASCII: allows 0x20 through 0x7E inclusive. Control characters, including
+ *       newlines, are reported as unmappable.
+ *   <dt>ASCII-Plain
+ *   <dd>Printable ASCII with newline support: includes linefeed (0x0A) and carriage return (0x0D),
+ *       normalising CRLF to LF. All other control characters are unmappable.
  *   <dt>X-Transliterating
- *   <dd>Standard US-ASCII decoder with aggressive character transliteration for decoding
- *       operations.
- *   <dt>X-Transliterating-Single-Byte
- *   <dd>Standard US-ASCII decoder with character transliteration for decoding operations that
- *       guarantees single-byte output per character.
+ *   <dd>Aggressive Unicode-to-ASCII transliteration using NFKD decomposition and character-name
+ *       lookup. Output length may vary (one Unicode character may produce multiple ASCII bytes).
+ *   <dt>X-Transliterating-Single-Byte (alias: ACH)
+ *   <dd>Same transliteration as X-Transliterating but guarantees 1:1 character output. Any
+ *       transliteration that would produce more or fewer than one character is rejected as
+ *       unmappable.
  * </dl>
  */
 public class TransliteratingASCIIProvider extends CharsetProvider {
 
-  /** Canonical name for the strict ACH character set. */
-  public static final String ACH_CHARSET = "X-ACH";
+  /** Canonical name for the strict printable ASCII character set. */
+  public static final String ASCII_PRINTABLE_CHARSET = "ASCII-Printable";
 
-  /** Alias for the strict ACH character set. */
-  public static final String ACH_CHARSET_ALIAS = "ACH";
-
-  /** Canonical name for the ACH character set with newline support. */
-  public static final String ACH_NEWLINES_CHARSET = "X-ACH-Newlines";
+  /** Canonical name for the printable ASCII character set with newline support. */
+  public static final String ASCII_PLAIN_CHARSET = "ASCII-Plain";
 
   /** Canonical name for the transliterating character set. */
   public static final String TRANSLITERATING_CHARSET = "X-Transliterating";
@@ -44,9 +41,12 @@ public class TransliteratingASCIIProvider extends CharsetProvider {
   /** Canonical name for the single-byte transliterating character set. */
   public static final String TRANSLITERATING_SINGLE_BYTE_CHARSET = "X-Transliterating-Single-Byte";
 
-  private Charset ach;
+  /** ACH alias for the single-byte transliterating character set. */
+  public static final String ACH_ALIAS = "ACH";
 
-  private Charset achNewlines;
+  private Charset asciiPrintable;
+
+  private Charset asciiPlain;
 
   private Charset transliterating;
 
@@ -63,24 +63,24 @@ public class TransliteratingASCIIProvider extends CharsetProvider {
     // Default constructor
   }
 
-  private Charset getAch() {
-    if (ach == null) {
+  private Charset getAsciiPrintable() {
+    if (asciiPrintable == null) {
       final ASCIIFilter filter = new ASCIIFilter(Character.CONTROL);
       final Cache transliterator = new Cache(filter);
-      ach = new TransliteratingASCII(transliterator, ACH_CHARSET, ACH_CHARSET_ALIAS);
+      asciiPrintable = new TransliteratingASCII(transliterator, ASCII_PRINTABLE_CHARSET);
     }
-    return ach;
+    return asciiPrintable;
   }
 
-  private Charset getAchNewlines() {
-    if (achNewlines == null) {
+  private Charset getAsciiPlain() {
+    if (asciiPlain == null) {
       final ASCIIFilter filter = new ASCIIFilter(Character.CONTROL);
       final Cache cache = new Cache(filter);
       cache.cache(0x0A, "\n");
       cache.cache(0x0D, "\r");
-      achNewlines = new TransliteratingASCII(cache, ACH_NEWLINES_CHARSET);
+      asciiPlain = new TransliteratingASCII(cache, ASCII_PLAIN_CHARSET);
     }
-    return achNewlines;
+    return asciiPlain;
   }
 
   private Charset getTransliterating() {
@@ -100,15 +100,15 @@ public class TransliteratingASCIIProvider extends CharsetProvider {
       final SingleCharacterFilter lengthPreserving = new SingleCharacterFilter(transliterator);
       final Cache cache = new Cache(lengthPreserving);
       transliteratingSingleByte =
-          new TransliteratingASCII(cache, TRANSLITERATING_SINGLE_BYTE_CHARSET);
+          new TransliteratingASCII(cache, TRANSLITERATING_SINGLE_BYTE_CHARSET, ACH_ALIAS);
     }
     return transliteratingSingleByte;
   }
 
   /**
    * Returns an iterator over all available character sets provided by this class. The available
-   * charsets are: X-ACH (ACH), X-ACH-Newlines, X-Transliterating, and
-   * X-Transliterating-Single-Byte.
+   * charsets are: ASCII-Printable, ASCII-Plain, X-Transliterating, and
+   * X-Transliterating-Single-Byte (ACH).
    *
    * @return Iterator containing all supported character sets {@code @ThreadSafe} This method is
    *     thread-safe and uses lazy initialization
@@ -119,7 +119,10 @@ public class TransliteratingASCIIProvider extends CharsetProvider {
       if (charsets == null) {
         charsets =
             Arrays.asList(
-                getAch(), getAchNewlines(), getTransliterating(), getTransliteratingSingleByte());
+                getAsciiPrintable(),
+                getAsciiPlain(),
+                getTransliterating(),
+                getTransliteratingSingleByte());
       }
     }
     return charsets.iterator();
@@ -129,10 +132,11 @@ public class TransliteratingASCIIProvider extends CharsetProvider {
    * Retrieves a specific character set by name. Supported charset names are:
    *
    * <ul>
-   *   <li>{@link #ACH_CHARSET X-ACH, ACH}
-   *   <li>{@link #ACH_NEWLINES_CHARSET X-ACH-Newlines}
+   *   <li>{@link #ASCII_PRINTABLE_CHARSET ASCII-Printable}
+   *   <li>{@link #ASCII_PLAIN_CHARSET ASCII-Plain}
    *   <li>{@link #TRANSLITERATING_CHARSET X-Transliterating}
-   *   <li>{@link #TRANSLITERATING_SINGLE_BYTE_CHARSET X-Transliterating-Single-Byte}
+   *   <li>{@link #TRANSLITERATING_SINGLE_BYTE_CHARSET X-Transliterating-Single-Byte} (alias: {@link
+   *       #ACH_ALIAS ACH})
    * </ul>
    *
    * @param charsetName the name of the requested charset
@@ -142,10 +146,10 @@ public class TransliteratingASCIIProvider extends CharsetProvider {
   @Override
   public Charset charsetForName(String charsetName) {
     return switch (charsetName) {
-      case ACH_CHARSET, "ACH" -> getAch();
-      case ACH_NEWLINES_CHARSET -> getAchNewlines();
+      case ASCII_PRINTABLE_CHARSET -> getAsciiPrintable();
+      case ASCII_PLAIN_CHARSET -> getAsciiPlain();
       case TRANSLITERATING_CHARSET -> getTransliterating();
-      case TRANSLITERATING_SINGLE_BYTE_CHARSET -> getTransliteratingSingleByte();
+      case TRANSLITERATING_SINGLE_BYTE_CHARSET, ACH_ALIAS -> getTransliteratingSingleByte();
       default -> null;
     };
   }

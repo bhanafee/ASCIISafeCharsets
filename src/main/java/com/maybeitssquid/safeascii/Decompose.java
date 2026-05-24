@@ -1,4 +1,4 @@
-package com.maybeitssquid.ach;
+package com.maybeitssquid.safeascii;
 
 import java.text.Normalizer;
 import java.util.function.IntFunction;

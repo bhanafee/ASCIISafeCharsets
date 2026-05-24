@@ -70,7 +70,7 @@ publishing {
     repositories {
         maven {
             name = 'GitHubPackages'
-            url = uri("https://maven.pkg.github.com/${System.env.GITHUB_REPOSITORY ?: 'bhanafee/ACHCharset'}")
+            url = uri("https://maven.pkg.github.com/${System.env.GITHUB_REPOSITORY ?: 'bhanafee/ASCIISafeCharsets'}")
             credentials {
                 username = System.env.USERNAME ?: System.env.GITHUB_ACTOR
                 password = System.env.TOKEN ?: System.env.GITHUB_TOKEN
@@ -80,11 +80,11 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             from components.java
-            artifactId = 'achcharset'
+            artifactId = 'ascii-safe-charsets'
             pom {
-                name = 'ACHCharset'
-                description = 'Java Charset implementation for ACH transliterating ASCII encoding'
-                url = 'https://github.com/bhanafee/ACHCharset'
+                name = 'ASCIISafeCharsets'
+                description = 'Java Charset SPI for Unicode-to-ASCII-safe transliteration'
+                url = 'https://github.com/bhanafee/ASCIISafeCharsets'
                 licenses {
                     license {
                         name = 'Apache License, Version 2.0'
@@ -92,9 +92,9 @@ publishing {
                     }
                 }
                 scm {
-                    url = 'https://github.com/bhanafee/ACHCharset'
-                    connection = 'scm:git:git://github.com/bhanafee/ACHCharset.git'
-                    developerConnection = 'scm:git:ssh://github.com/bhanafee/ACHCharset.git'
+                    url = 'https://github.com/bhanafee/ASCIISafeCharsets'
+                    connection = 'scm:git:git://github.com/bhanafee/ASCIISafeCharsets.git'
+                    developerConnection = 'scm:git:ssh://github.com/bhanafee/ASCIISafeCharsets.git'
                 }
             }
         }

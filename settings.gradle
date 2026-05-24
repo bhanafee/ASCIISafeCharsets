@@ -1,4 +1,4 @@
-rootProject.name = 'ACHCharset'
+rootProject.name = 'ASCIISafeCharsets'
 
 gradle.beforeProject { proj ->
     if (proj == proj.rootProject) {

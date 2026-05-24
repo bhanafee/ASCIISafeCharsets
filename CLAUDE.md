@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project overview
 
-A Java library that implements the ACH (Automated Clearing House) character set as a `java.nio.charset.Charset` SPI provider. The library transliterates Unicode to the ACH-safe subset of ASCII (0x20–0x7E, plus optional newlines) rather than simply rejecting non-ASCII input. It is published to GitHub Packages as `com.maybeitssquid:achcharset`.
+A Java library providing ASCII-safe `Charset` SPI implementations that transliterate Unicode to
+ASCII subsets rather than simply rejecting non-ASCII input. Published to GitHub Packages as
+`com.maybeitssquid:ascii-safe-charsets`.
 
 ## Commands
 
@@ -15,7 +17,7 @@ A Java library that implements the ACH (Automated Clearing House) character set 
 ./gradlew javadoc        # generate Javadoc
 
 # Run a single test class
-./gradlew test --tests "com.maybeitssquid.ach.CacheTest"
+./gradlew test --tests "com.maybeitssquid.safeascii.CacheTest"
 ```
 
 Build versions are timestamped (`1.0.0-YYYYMMDDHHMMSS`); this is intentional for snapshot publishing.
@@ -27,19 +29,20 @@ The library wires together two subsystems: a `Charset` implementation and a conf
 ### Charset layer
 
 - **`TransliteratingASCIIProvider`** — `CharsetProvider` SPI entry point, registered via `src/main/resources/META-INF/services/java.nio.charset.spi.CharsetProvider`. Provides four charsets lazily:
-  - `ACH` / `X-ACH` — strict ACH (0x20–0x7E only, controls blocked)
-  - `X-ACH-Newlines` — same but allows LF and CR
+  - `ASCII-Printable` — strict printable ASCII (0x20–0x7E only, controls blocked)
+  - `ASCII-Plain` — same but allows LF and normalises CRLF to LF
   - `X-Transliterating` — aggressive Unicode-to-ASCII transliteration
-  - `X-Transliterating-Single-Byte` — same but guarantees 1:1 character output
+  - `X-Transliterating-Single-Byte` (alias `ACH`) — same but guarantees 1:1 character output
 - **`TransliteratingASCII`** — extends `java.nio.charset.Charset`. Takes an `IntFunction<CharSequence>` transliterator at construction; the encoder/decoder delegate all codepoint mapping to it.
 
 ### Transliterator pipeline
 
-Each step implements `IntFunction<CharSequence>` and chains to the next. Processing flows right-to-left through the chain:
+Each step implements `IntFunction<CharSequence>` and chains to the next. The actual pipelines
+assembled by the provider are:
 
-```
-Cache → Decompose → Name → Categorize → ASCIIFilter
-```
+- **ASCII-Printable / ASCII-Plain**: `Cache → ASCIIFilter`
+- **X-Transliterating**: `Cache → Decompose → Name → ASCIIFilter`
+- **X-Transliterating-Single-Byte**: `Cache → SingleCharacterFilter → Decompose → Name → ASCIIFilter`
 
 - **`ASCIIFilter`** — terminal step; passes ASCII codepoints not in the blocked Unicode categories, rejects everything else with `""`.
 - **`Categorize`** — maps Unicode categories (digits, spaces, dashes, brackets, quotes, etc.) to ASCII equivalents; passes ASCII straight to delegate.
