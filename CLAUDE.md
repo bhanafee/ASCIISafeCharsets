@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A Java library that implements the ACH (Automated Clearing House) character set as a `java.nio.charset.Charset` SPI provider. The library transliterates Unicode to the ACH-safe subset of ASCII (0x20–0x7E, plus optional newlines) rather than simply rejecting non-ASCII input. It is published to GitHub Packages as `com.maybeitssquid:achcharset`.
 
-## Build commands
+## Commands
 
 ```bash
 ./gradlew build          # compile, run tests, spotless check
