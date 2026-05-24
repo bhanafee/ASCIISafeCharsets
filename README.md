@@ -8,6 +8,7 @@ limited to 7-bits, resulting in a range from `0x20` through `0x7F`.
 
 - [GitHub repository](https://github.com/bhanafee/ACHCharset)
 - [Javadoc](https://bhanafee.github.io/ACHCharset/javadoc/)
+- [License](https://bhanafee.github.io/ACHCharset/LICENSE)
 - [Code of Conduct](https://bhanafee.github.io/ACHCharset/CODE_OF_CONDUCT.html)
 
 ## Newline handling
