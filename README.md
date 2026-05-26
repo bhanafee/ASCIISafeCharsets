@@ -315,3 +315,11 @@ CharsetEncoder encoder = ach.newEncoder().onUnmappableCharacter(CodingErrorActio
 Writer writer = new OutputStreamWriter(bytesOut, encoder);
 // Writer will throw an exception if it encounters an untransliterable character
 ```
+
+## Technologies
+
+| Component | Version |
+|-----------|---------|
+| Java | 25 (toolchain; runs on 17+) |
+| Gradle | 9.5.1 |
+| JUnit | 5.12.+ |
