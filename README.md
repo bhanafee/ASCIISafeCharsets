@@ -5,14 +5,6 @@ Rather than simply rejecting non-ASCII input, the transliterating variants map c
 characters — accented letters, curly quotes, em-dashes — to their nearest ASCII equivalents,
 making it practical to process real-world input without aborting the encoding step.
 
-## Links
-
-- [GitHub repository](https://github.com/bhanafee/ASCIISafeCharsets)
-- [Javadoc](https://bhanafee.github.io/ASCIISafeCharsets/javadoc/)
-- [Apache 2.0 License](https://bhanafee.github.io/ASCIISafeCharsets/LICENSE)
-- [Code of Conduct](https://bhanafee.github.io/ASCIISafeCharsets/CODE_OF_CONDUCT.html)
-- [Claude Code Guidance](https://bhanafee.github.io/ASCIISafeCharsets/CLAUDE.html)
-
 ## The Problem
 
 Many file formats and protocols restrict their character set to a subset of US-ASCII:
@@ -322,4 +314,15 @@ Writer writer = new OutputStreamWriter(bytesOut, encoder);
 |-----------|---------|
 | Java | 25 (toolchain; runs on 17+) |
 | Gradle | 9.5.1 |
-| JUnit | 5.12.+ |
+| JUnit | 6.1.0 |
+| JaCoCo | 0.8.14 |
+
+## Links
+
+- [GitHub repository](https://github.com/bhanafee/ASCIISafeCharsets)
+- [Javadoc](https://bhanafee.github.io/ASCIISafeCharsets/javadoc/)
+- [Test Results](https://bhanafee.github.io/ASCIISafeCharsets/tests/)
+- [Coverage Report](https://bhanafee.github.io/ASCIISafeCharsets/coverage/)
+- [Apache 2.0 License](https://bhanafee.github.io/ASCIISafeCharsets/LICENSE)
+- [Code of Conduct](https://bhanafee.github.io/ASCIISafeCharsets/CODE_OF_CONDUCT.html)
+- [Claude Code Guidance](https://bhanafee.github.io/ASCIISafeCharsets/CLAUDE.html)
