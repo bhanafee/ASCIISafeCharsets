@@ -1,5 +1,7 @@
 # ASCII-safe Charsets
 
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+
 A Java `Charset` SPI provider that encodes Unicode text into ASCII-safe subsets.
 Rather than simply rejecting non-ASCII input, the transliterating variants map common Unicode
 characters — accented letters, curly quotes, em-dashes — to their nearest ASCII equivalents,
