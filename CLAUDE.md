@@ -15,10 +15,15 @@ ASCII subsets rather than simply rejecting non-ASCII input. Published to GitHub 
 ./gradlew test           # tests only
 ./gradlew spotlessApply  # auto-format Java source (required before commit)
 ./gradlew javadoc        # generate Javadoc
+./gradlew dependencyCheckAnalyze  # OWASP CVE scan (slow; fails build at CVSS >= 7)
 
 # Run a single test class
 ./gradlew test --tests "com.maybeitssquid.safeascii.CacheTest"
 ```
+
+On Windows, use `gradlew.bat` (or `.\gradlew` in PowerShell).
+
+The build uses a Java 25 toolchain and compiles to Java 17 bytecode (`release = "17"`). CI tests on Java 17, 21, and 25 on every push/PR to `main`.
 
 Build versions are timestamped (`1.0.0-YYYYMMDDHHMMSS`); this is intentional for snapshot publishing.
 
@@ -58,6 +63,6 @@ Spotless enforces Google Java Format. Run `./gradlew spotlessApply` before commi
 
 ## Security patches
 
-Transitive dependency CVEs are pinned in `gradle/libs.versions.toml` as `patch-*` library entries collected in the `security-patches` bundle. `build.gradle` applies them as `implementation` constraints. `settings.gradle` also loads them into the buildscript classpath via regex. New CVE patches follow the same `patch-cve-XXXX-NNNN` naming convention.
+Transitive dependency CVEs are pinned in `gradle/libs.versions.toml` as `patch-*` library entries collected in the `security-patches` bundle. `build.gradle` applies them as `implementation` constraints. `settings.gradle` also loads them into the buildscript classpath via regex. New CVE patches follow the same `patch-cve-XXXX-NNNNN` naming convention.
 
 The OWASP dependency check plugin (`./gradlew dependencyCheckAnalyze`) fails the build at CVSS ≥ 7.
