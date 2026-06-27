@@ -237,6 +237,9 @@ the record structure intact and flags the substitution for downstream review.
 
 ## Examples
 
+The snippets below omit checked-exception handling and resource management (try-with-resources)
+for brevity; production code should close the streams and handle `IOException`.
+
 ### Decoding an `InputStream` to a `Reader`
 
 #### Length-preserving reads of an ASCII text stream
@@ -266,8 +269,12 @@ characters in its decoder; bytes `0x80`–`0xFF` are always malformed.
 InputStream bytesIn = new FileInputStream("input.ach");
 // Retrieve Charset by name because it has a provider resource in the classpath
 Charset cs = Charset.forName("ASCII-Printable");
-// Obtain an explicit decoder and override the default behavior on malformed input
-CharsetDecoder decoder = cs.newDecoder().onMalformedInput(CodingErrorAction.REPORT);
+// Report both error kinds: high bytes (0x80-0xFF) are malformed, while blocked control
+// characters are unmappable. (newDecoder() already defaults both actions to REPORT; these
+// calls make the intent explicit rather than relying on that default.)
+CharsetDecoder decoder = cs.newDecoder()
+    .onMalformedInput(CodingErrorAction.REPORT)
+    .onUnmappableCharacter(CodingErrorAction.REPORT);
 // Use the constructor that accepts a CharsetDecoder
 Reader reader = new InputStreamReader(bytesIn, decoder);
 // Reader will throw an exception if it encounters any unexpected byte
@@ -303,8 +310,12 @@ the encoding can be configured to throw an exception rather than substituting `?
 OutputStream bytesOut = new FileOutputStream("output.ach");
 // Retrieve Charset by name because it has a provider resource in the classpath
 Charset ach = Charset.forName("ACH");
-// Obtain an explicit encoder and override the default behavior on unmappable output
-CharsetEncoder encoder = ach.newEncoder().onUnmappableCharacter(CodingErrorAction.REPORT);
+// Report both error kinds: untransliterable characters are unmappable, while unpaired
+// surrogates are malformed. (newEncoder() already defaults both actions to REPORT; these
+// calls make the intent explicit rather than relying on that default.)
+CharsetEncoder encoder = ach.newEncoder()
+    .onMalformedInput(CodingErrorAction.REPORT)
+    .onUnmappableCharacter(CodingErrorAction.REPORT);
 // Use the constructor that accepts a CharsetEncoder
 Writer writer = new OutputStreamWriter(bytesOut, encoder);
 // Writer will throw an exception if it encounters an untransliterable character
