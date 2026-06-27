@@ -150,6 +150,13 @@ Processing is driven right-to-left during construction but left-to-right at runt
 
 ## Class Structure
 
+The library is a named JPMS module, `com.maybeitssquid.safeascii`. Only the charset API package of
+the same name is exported (`TransliteratingASCII` and `TransliteratingASCIIProvider`); the
+transliteration pipeline lives in the encapsulated `com.maybeitssquid.safeascii.internal` package
+and is not part of the public API. The charset provider is registered for both the module path (via
+`module-info.java`) and the classpath (via `META-INF/services`), so `Charset.forName(...)` works
+either way.
+
 ```mermaid
 classDiagram
     class CharsetProvider {

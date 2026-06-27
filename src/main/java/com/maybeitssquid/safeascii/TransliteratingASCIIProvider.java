@@ -1,5 +1,10 @@
 package com.maybeitssquid.safeascii;
 
+import com.maybeitssquid.safeascii.internal.ASCIIFilter;
+import com.maybeitssquid.safeascii.internal.Cache;
+import com.maybeitssquid.safeascii.internal.Decompose;
+import com.maybeitssquid.safeascii.internal.Name;
+import com.maybeitssquid.safeascii.internal.SingleCharacterFilter;
 import java.nio.charset.Charset;
 import java.nio.charset.spi.CharsetProvider;
 import java.util.Arrays;

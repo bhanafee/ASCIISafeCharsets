@@ -1,4 +1,4 @@
-package com.maybeitssquid.safeascii;
+package com.maybeitssquid.safeascii.internal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

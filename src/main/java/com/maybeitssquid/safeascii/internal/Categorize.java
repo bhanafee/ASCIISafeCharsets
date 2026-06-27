@@ -1,4 +1,4 @@
-package com.maybeitssquid.safeascii;
+package com.maybeitssquid.safeascii.internal;
 
 import static java.lang.Character.*;
 

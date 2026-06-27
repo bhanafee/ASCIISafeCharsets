@@ -1,4 +1,4 @@
-package com.maybeitssquid.safeascii;
+package com.maybeitssquid.safeascii.internal;
 
 import java.util.HashMap;
 import java.util.Map;

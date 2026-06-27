@@ -1,6 +1,6 @@
 package com.maybeitssquid.safeascii;
 
-import static com.maybeitssquid.safeascii.Chainable.ASCII;
+import static com.maybeitssquid.safeascii.internal.Chainable.ASCII;
 
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
