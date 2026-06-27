@@ -1,6 +1,6 @@
-package com.maybeitssquid.safeascii;
+package com.maybeitssquid.safeascii.internal;
 
-import static com.maybeitssquid.safeascii.Chainable.ASCII;
+import static com.maybeitssquid.safeascii.internal.Chainable.ASCII;
 
 import java.util.HashSet;
 import java.util.Set;

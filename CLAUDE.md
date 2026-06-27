@@ -31,9 +31,22 @@ Build versions are timestamped (`1.0.0-YYYYMMDDHHMMSS`); this is intentional for
 
 The library wires together two subsystems: a `Charset` implementation and a configurable transliteration pipeline.
 
+### Module and package layout
+
+The library is a named JPMS module (`module-info.java`, module `com.maybeitssquid.safeascii`).
+Only the charset API package `com.maybeitssquid.safeascii` is exported. The transliteration
+pipeline lives in `com.maybeitssquid.safeascii.internal`, which is **not** exported — those classes
+are implementation details, not public API. The provider is declared two ways so it works on both
+paths: `provides java.nio.charset.spi.CharsetProvider with …` in `module-info.java` (module path)
+and `META-INF/services/java.nio.charset.spi.CharsetProvider` (classpath).
+
+When working on the pipeline, keep new internal classes in `…internal`; only add to the exported
+package if it is genuinely part of the public charset API. Pipeline unit tests live in
+`src/test/java/com/maybeitssquid/safeascii/internal` so they retain same-package/protected access.
+
 ### Charset layer
 
-- **`TransliteratingASCIIProvider`** — `CharsetProvider` SPI entry point, registered via `src/main/resources/META-INF/services/java.nio.charset.spi.CharsetProvider`. Provides four charsets lazily:
+- **`TransliteratingASCIIProvider`** — `CharsetProvider` SPI entry point in the exported package, registered via `src/main/resources/META-INF/services/java.nio.charset.spi.CharsetProvider` (classpath) and the `provides` directive in `module-info.java` (module path). Provides four charsets lazily:
   - `ASCII-Printable` — strict printable ASCII (0x20–0x7E only, controls blocked)
   - `ASCII-Plain` — same but allows LF and normalises CRLF to LF
   - `X-Transliterating` — aggressive Unicode-to-ASCII transliteration
@@ -42,7 +55,8 @@ The library wires together two subsystems: a `Charset` implementation and a conf
 
 ### Transliterator pipeline
 
-Each step implements `IntFunction<CharSequence>` and chains to the next. The actual pipelines
+Each step implements `IntFunction<CharSequence>` and chains to the next. All pipeline classes below
+live in the non-exported `com.maybeitssquid.safeascii.internal` package. The actual pipelines
 assembled by the provider are:
 
 - **ASCII-Printable / ASCII-Plain**: `Cache → ASCIIFilter`
