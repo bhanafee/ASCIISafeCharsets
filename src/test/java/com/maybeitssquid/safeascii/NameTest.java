@@ -1,7 +1,10 @@
 package com.maybeitssquid.safeascii;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 /** Unit tests for the {@link Name} class. */
@@ -94,6 +97,33 @@ class NameTest extends AbstractChainableTest {
   }
 
   @Test
+  void processNonAsciiQuotePunctuation() {
+    // ASCII U+0022 short-circuits the pipeline; these route through Name.quotePunctuation.
+    test(0x201C, "\""); // LEFT DOUBLE QUOTATION MARK -> name contains DOUBLE
+    test(0x00AB, "\""); // LEFT-POINTING DOUBLE ANGLE QUOTATION MARK
+    test(0x2E04, "\""); // LEFT DOTTED SUBSTITUTION BRACKET -> name contains DOTTED, not DOUBLE
+    test(0x2018, "'"); // LEFT SINGLE QUOTATION MARK -> neither DOUBLE nor DOTTED
+  }
+
+  @Test
+  void processNonLatinCasedLetter() {
+    // A cased letter whose name is not "LATIN ... LETTER" yields no base letter.
+    test(0x0391, ""); // GREEK CAPITAL LETTER ALPHA
+  }
+
+  @Test
+  void processBackslashNamedSymbol() {
+    // APL FUNCTIONAL SYMBOL BACKSLASH BAR: name contains BACKSLASH but is not a special case.
+    test(0x2340, "\\");
+  }
+
+  @Test
+  void customLineSeparatorConstructor() {
+    final Name name = new Name(Character::toString, "|");
+    assertEquals("|", name.apply(0x2028)); // LINE SEPARATOR
+  }
+
+  @Test
   void processModifierSymbolAmpersand() {
     testUnchanged(0x0026);
   }
@@ -158,5 +188,43 @@ class NameTest extends AbstractChainableTest {
   @Test
   void processUnknownCharacter() {
     testUnchanged(0x1F601);
+  }
+
+  /** Exercises the keyword chain in {@link Name#byName(int)} via {@link Name#process(int)}. */
+  @CsvSource({
+    "0x29F5, \\", // REVERSE SOLIDUS OPERATOR
+    "0x2044, /", // FRACTION SLASH
+    "0x2AFB, ///", // TRIPLE SOLIDUS BINARY RELATION
+    "0x2AFD, //", // DOUBLE SOLIDUS OPERATOR
+    "0x244A, \\\\", // OCR DOUBLE BACKSLASH
+    "0x1F10F, $", // CIRCLED DOLLAR SIGN WITH OVERLAID BACKSLASH
+    "0x1F16E, C", // CIRCLED C WITH OVERLAID BACKSLASH
+    "0x1F10D, 0", // CIRCLED ZERO WITH SLASH
+    "0x2260, =", // NOT EQUAL TO
+    "0xFF06, &", // FULLWIDTH AMPERSAND
+    "0xFE52, .", // SMALL FULL STOP
+    "0xFF07, ''''", // FULLWIDTH APOSTROPHE (CSV-escaped single quote)
+    "0xFF01, !", // FULLWIDTH EXCLAMATION MARK
+    "0xFF1F, ?", // FULLWIDTH QUESTION MARK
+    "0x203D, ?!", // INTERROBANG
+    "0x2217, *", // ASTERISK OPERATOR
+    "0xFF1B, ;", // FULLWIDTH SEMICOLON
+    "0xFF05, %", // FULLWIDTH PERCENT SIGN
+    "0xFF0B, +", // FULLWIDTH PLUS SIGN
+    "0x00D7, X", // MULTIPLICATION SIGN
+    "0xFF0C, ','", // FULLWIDTH COMMA
+    "0xFF5E, ~", // FULLWIDTH TILDE
+    "0xFF1A, :" // FULLWIDTH COLON
+  })
+  @ParameterizedTest
+  void processByName(final int codepoint, final String expected) {
+    test(codepoint, expected);
+  }
+
+  @Test
+  void byNameColonSignIsNotTreatedAsColon() {
+    // The Colombian COLON SIGN currency symbol must not collapse to ':'.
+    final Name name = new Name();
+    assertEquals(Character.toString(Name.UNICODE_COLON_SIGN), name.byName(Name.UNICODE_COLON_SIGN));
   }
 }
