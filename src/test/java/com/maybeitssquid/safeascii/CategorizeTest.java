@@ -96,6 +96,21 @@ class CategorizeTest extends AbstractChainableTest {
     test('\uFFFD', "?");
   }
 
+  @ValueSource(ints = {0x0080, 0x0090, 0x009F})
+  @ParameterizedTest
+  void processNonNelControlPassesThrough(final int codepoint) {
+    // Non-ASCII C1 control characters other than NEL are returned unchanged.
+    testUnchanged(codepoint);
+  }
+
+  @Test
+  void customLineSeparatorIsUsed() {
+    final Categorize categorize = new Categorize(Character::toString, "|");
+    assertEquals("|", categorize.getLineSeparator());
+    assertEquals("|", categorize.apply(0x2028)); // LINE SEPARATOR
+    assertEquals("|", categorize.apply(Categorize.UNICODE_NEL)); // C1 NEL control
+  }
+
   @Test
   void applyASCIIOptimization() {
     final String[] result = new String[] {"default"};

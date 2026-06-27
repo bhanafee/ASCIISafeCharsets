@@ -17,7 +17,18 @@ import java.util.function.IntFunction;
  */
 public class TransliteratingASCII extends Charset {
 
+  /**
+   * Default upper bound on the number of ASCII bytes a single input character may transliterate to,
+   * used by the convenience constructor. The aggressive pipeline can expand one character into
+   * several bytes; the longest known case is U+33AF SQUARE RAD OVER S SQUARED, which maps to {@code
+   * "rad/s2"} (6 bytes). A transliterator that can expand further must be paired with a larger
+   * bound via {@link #TransliteratingASCII(IntFunction, float, String...)}.
+   */
+  public static final float DEFAULT_MAX_BYTES_PER_CHAR = 6F;
+
   private final IntFunction<CharSequence> transliterator;
+
+  private final float maxBytesPerChar;
 
   private static String[] aliases(final String[] names) {
     if (names.length > 1) {
@@ -30,15 +41,39 @@ public class TransliteratingASCII extends Charset {
   }
 
   /**
-   * Initializes a new charset with the given canonical name and alias set.
+   * Initializes a new charset with the given canonical name and alias set, declaring the maximum
+   * number of ASCII bytes any single input character may transliterate to.
+   *
+   * <p>The bound is what {@link java.nio.charset.CharsetEncoder#maxBytesPerChar()} reports, so it
+   * must not be underestimated: {@link String#getBytes(Charset)} sizes its output buffer from it
+   * and would otherwise overflow. It must be at least {@code 1} (the encoder's average bytes per
+   * char).
    *
    * @param transliterator The function to convert a code point into zero or more characters
+   * @param maxBytesPerChar The largest number of ASCII bytes the transliterator emits for one input
+   *     character; must be {@code >= 1}
    * @param names The canonical name of this charset followed by any aliases
    */
   protected TransliteratingASCII(
-      final IntFunction<CharSequence> transliterator, final String... names) {
+      final IntFunction<CharSequence> transliterator,
+      final float maxBytesPerChar,
+      final String... names) {
     super(names[0], aliases(names));
     this.transliterator = transliterator;
+    this.maxBytesPerChar = maxBytesPerChar;
+  }
+
+  /**
+   * Initializes a new charset with the given canonical name and alias set, using {@link
+   * #DEFAULT_MAX_BYTES_PER_CHAR} as the maximum bytes-per-character bound.
+   *
+   * @param transliterator The function to convert a code point into zero or more characters
+   * @param names The canonical name of this charset followed by any aliases
+   * @see #TransliteratingASCII(IntFunction, float, String...)
+   */
+  protected TransliteratingASCII(
+      final IntFunction<CharSequence> transliterator, final String... names) {
+    this(transliterator, DEFAULT_MAX_BYTES_PER_CHAR, names);
   }
 
   /**
@@ -155,7 +190,7 @@ public class TransliteratingASCII extends Charset {
    */
   @Override
   public CharsetEncoder newEncoder() {
-    return new CharsetEncoder(this, 1F, 1F, new byte[] {(byte) '?'}) {
+    return new CharsetEncoder(this, 1F, maxBytesPerChar, new byte[] {(byte) '?'}) {
       @Override
       protected CoderResult encodeLoop(final CharBuffer in, final ByteBuffer out) {
         while (in.hasRemaining()) {
