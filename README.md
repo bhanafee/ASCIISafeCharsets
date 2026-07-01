@@ -11,12 +11,12 @@ making it practical to process real-world input without aborting the encoding st
 
 Many file formats and protocols restrict their character set to a subset of US-ASCII:
 
-- **Plain ASCII** (`0x20`–`0x7E` plus LF `0x0A`) — printable characters and a line separator.
-  ACH (Automated Clearing House) files use this: each record is 94 printable characters
-  terminated by a newline.
-- **Printable ASCII** (`0x20`–`0x7E` only) — the same printable range with no control characters
-  at all. Used by formats that treat newlines as structural delimiters outside the character data,
-  or that require every byte to be printable.
+- **Printable ASCII** (`0x20`–`0x7E` only) — formats that treat newlines as structural delimiters
+  outside character data, or require every byte to be printable.
+- **Plain ASCII** (`0x20`–`0x7E` plus LF) — printable characters and a Unix line separator, used
+  by line-oriented text formats such as ACH (Automated Clearing House) files.
+- **Formatted ASCII** (`0x20`–`0x7E` plus TAB and LF) — tab-delimited data formats, columnar
+  reports, and other output that uses horizontal whitespace for alignment.
 
 Applications that generate such output from real-world data inevitably encounter names with
 accented characters, Unicode punctuation (em-dashes, curly quotes), or EBCDIC newline variants
@@ -32,7 +32,7 @@ handle newline variants and control characters correctly for both plain and prin
 - **SPI-based**: registered as a `CharsetProvider`, so `Charset.forName("ASCII-Plain")` works
   without any code changes to existing `InputStreamReader` / `OutputStreamWriter` usage
 - **Safe replacement by default**: unexpected characters become `?` rather than throwing
-- **Optional newlines**: `ASCII-Plain` passes LF and normalises CRLF to LF
+- **Whitespace control**: `ASCII-Plain` passes LF (CRLF normalises to LF); `ASCII-Formatted` additionally passes TAB
 - **Unicode transliteration**: `X-Transliterating` maps accented letters, punctuation, and common
   Unicode symbols to ASCII equivalents using NFKD decomposition and name-based lookup
 - **Fixed-width mode**: `X-Transliterating-Single-Byte` (alias `ACH`) guarantees 1:1 character
@@ -79,12 +79,13 @@ Unicode transliteration:
 ```mermaid
 flowchart TD
     Q1{"Need Unicode\ntransliteration?"}
-    Q1 -->|No| Q2{"Need newlines\nin output?"}
+    Q1 -->|No| Q2{"Need whitespace\nformatting?"}
     Q1 -->|Yes| Q3{"Need fixed-width\n1:1 output?"}
-    Q2 -->|No| AP["ASCII-Printable\nStrict: 0x20–0x7E only\nControls blocked"]
-    Q2 -->|Yes| APL["ASCII-Plain\nLF passes; CRLF → LF\nOther controls blocked"]
+    Q2 -->|None| AP["ASCII-Printable\nStrict: 0x20–0x7E only\nControls blocked"]
+    Q2 -->|LF only| APL["ASCII-Plain\nLF passes; CRLF → LF\nOther controls blocked"]
+    Q2 -->|TAB + LF| AF["ASCII-Formatted\nTAB and LF pass; CRLF → LF\nOther controls blocked"]
     Q3 -->|No| XT["X-Transliterating\nUnicode → ASCII via\ndecomposition + name lookup\nVariable-width output"]
-    Q3 -->|Yes| XTSB["X-Transliterating-Single-Byte (ACH)\nSame transliteration but\nrejects multi-char results\nGuarantees 1:1 mapping"]
+    Q3 -->|Yes| XTSB["X-Transliterating-Single-Byte\nSame transliteration but\nrejects multi-char results\nGuarantees 1:1 mapping"]
 ```
 
 All charsets are retrieved by name because the SPI provider is registered on the classpath:
@@ -92,6 +93,7 @@ All charsets are retrieved by name because the SPI provider is registered on the
 ```java
 Charset asciiPrintable = Charset.forName("ASCII-Printable");
 Charset asciiPlain     = Charset.forName("ASCII-Plain");
+Charset asciiFormatted = Charset.forName("ASCII-Formatted");
 Charset xliterate      = Charset.forName("X-Transliterating");
 Charset xliterateSB    = Charset.forName("X-Transliterating-Single-Byte");
 Charset ach            = Charset.forName("ACH");  // alias for X-Transliterating-Single-Byte
@@ -106,7 +108,7 @@ charsets add decomposition and name-based lookup stages:
 flowchart LR
     Input(["Unicode\ncodepoint"])
 
-    subgraph AP ["ASCII-Printable / ASCII-Plain"]
+    subgraph AP ["ASCII-Printable / ASCII-Plain / ASCII-Formatted"]
         direction LR
         CA["Cache"]
         FA["ASCIIFilter\nblock controls"]
@@ -122,7 +124,7 @@ flowchart LR
         CX -->|miss| DX --> NX --> FX
     end
 
-    subgraph XLITSB ["X-Transliterating-Single-Byte (ACH)"]
+    subgraph XLITSB ["X-Transliterating-Single-Byte"]
         direction LR
         CS["Cache"]
         SS["SingleCharacterFilter\nrejects length ≠ 1"]
@@ -215,12 +217,13 @@ classDiagram
 Although the strict charsets do not allow values below `0x20` or above `0x7F`, there are some
 exceptions:
 
-| Codepoint | Character | ASCII-Printable | ASCII-Plain | Notes |
-|---|---|---|---|---|
-| `0x0A` | Linefeed | Blocked | Allowed | Common record separator |
-| `0x0D` | Carriage return | Blocked | Normalised to `""` | CRLF → LF on all platforms; `canEncode(0x0D)` returns `false` |
-| `0x7F` | DEL | Blocked | Blocked | Unprintable control character |
-| `0x85` | NEL | Encoded as LF | Encoded as LF | EBCDIC newline; safe to encode, unsafe to decode (see below) |
+| Codepoint | Character | ASCII-Printable | ASCII-Plain | ASCII-Formatted | Notes |
+|---|---|---|---|---|---|
+| `0x09` | Tab | Blocked | Blocked | Allowed | Horizontal whitespace for alignment |
+| `0x0A` | Linefeed | Blocked | Allowed | Allowed | Common record separator |
+| `0x0D` | Carriage return | Blocked | Normalised to `""` | Normalised to `""` | CRLF → LF under `IGNORE`; `canEncode(0x0D)` returns `false` |
+| `0x7F` | DEL | Blocked | Blocked | Blocked | Unprintable control character |
+| `0x85` | NEL | Encoded as LF | Encoded as LF | Encoded as LF | EBCDIC newline; safe to encode, unsafe to decode (see below) |
 
 The `CRLF` sequence is encoded and decoded as `LF` on all platforms.
 
@@ -289,38 +292,35 @@ Reader reader = new InputStreamReader(bytesIn, decoder);
 
 ### Encoding an `OutputStream` to a `Writer`
 
-#### Length-preserving writes to an ACH output stream
+#### Length-preserving writes to a fixed-width ASCII output stream
 
-ACH files require each record to be 94 characters. The critical fields necessary for processing a
-file are usually generated by well-tested templates. A template may include text fields from a
-source that contains a wider range of characters than ACH allows. Injecting an unexpected
-character could cause problems for downstream systems. Reporting the error with an exception could
-abort and delay the entire file generation stage due to a single field on a single record. The
-best solution in this case is to substitute the unexpected character with a placeholder and
-continue. The encoder's default replacement character is a question mark (?), which is also the
-default action for a Java `Charset`.
+Fixed-width record formats (such as ACH files, where each record is 94 printable characters)
+require every output character to occupy exactly one byte. A template may include text fields from
+a source that contains Unicode characters not allowed in the target format. Injecting an unexpected
+character could corrupt the record structure. The best approach is to transliterate where possible
+and substitute a placeholder (`?` by default) for any remaining unmappable characters.
 
 ```java
 OutputStream bytesOut = new FileOutputStream("output.ach");
-// ACH is an alias for X-Transliterating-Single-Byte, which transliterates Unicode to
-// ASCII and guarantees 1:1 character output — essential for ACH's fixed-width records.
+// X-Transliterating-Single-Byte transliterates Unicode to ASCII and guarantees 1:1
+// character output — essential for fixed-width records. ACH is a registered alias.
 Writer writer = new OutputStreamWriter(bytesOut, "ACH");
 // Writer will transliterate Unicode and replace any untransliterable characters with '?'
 ```
 
 #### Forcing failure if the output contains unexpected characters
 
-If a single untransliterable character is sufficient cause to abort generation of an ACH file,
-the encoding can be configured to throw an exception rather than substituting `?`.
+If a single untransliterable character is sufficient cause to abort encoding, configure the
+encoder to throw an exception rather than substituting `?`.
 
 ```java
 OutputStream bytesOut = new FileOutputStream("output.ach");
 // Retrieve Charset by name because it has a provider resource in the classpath
-Charset ach = Charset.forName("ACH");
+Charset cs = Charset.forName("X-Transliterating-Single-Byte");
 // Report both error kinds: untransliterable characters are unmappable, while unpaired
 // surrogates are malformed. (newEncoder() already defaults both actions to REPORT; these
 // calls make the intent explicit rather than relying on that default.)
-CharsetEncoder encoder = ach.newEncoder()
+CharsetEncoder encoder = cs.newEncoder()
     .onMalformedInput(CodingErrorAction.REPORT)
     .onUnmappableCharacter(CodingErrorAction.REPORT);
 // Use the constructor that accepts a CharsetEncoder

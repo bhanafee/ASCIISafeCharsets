@@ -36,6 +36,7 @@ class TransliteratingASCIIProviderTest {
       strings = {
         TransliteratingASCIIProvider.ASCII_PRINTABLE_CHARSET,
         TransliteratingASCIIProvider.ASCII_PLAIN_CHARSET,
+        TransliteratingASCIIProvider.ASCII_FORMATTED_CHARSET,
         TransliteratingASCIIProvider.TRANSLITERATING_CHARSET,
         TransliteratingASCIIProvider.TRANSLITERATING_SINGLE_BYTE_CHARSET,
         TransliteratingASCIIProvider.ACH_ALIAS
@@ -72,15 +73,16 @@ class TransliteratingASCIIProviderTest {
   }
 
   @Test
-  void charsetsIteratorExposesAllFour() {
+  void charsetsIteratorExposesAllFive() {
     final List<String> names = new ArrayList<>();
     final Iterator<Charset> it = provider.charsets();
     while (it.hasNext()) {
       names.add(it.next().name());
     }
-    assertEquals(4, names.size());
+    assertEquals(5, names.size());
     assertTrue(names.contains(TransliteratingASCIIProvider.ASCII_PRINTABLE_CHARSET));
     assertTrue(names.contains(TransliteratingASCIIProvider.ASCII_PLAIN_CHARSET));
+    assertTrue(names.contains(TransliteratingASCIIProvider.ASCII_FORMATTED_CHARSET));
     assertTrue(names.contains(TransliteratingASCIIProvider.TRANSLITERATING_CHARSET));
     assertTrue(names.contains(TransliteratingASCIIProvider.TRANSLITERATING_SINGLE_BYTE_CHARSET));
   }
@@ -116,6 +118,56 @@ class TransliteratingASCIIProviderTest {
   void asciiPlainAllowsNewline() {
     final Charset cs = provider.charsetForName(TransliteratingASCIIProvider.ASCII_PLAIN_CHARSET);
     assertEquals("a\nb", transliterate(cs, "a\nb"));
+  }
+
+  @Test
+  void asciiPlainRejectsCarriageReturn() {
+    // Lone CR is unmappable; default REPLACE action substitutes '?'.
+    final Charset cs = provider.charsetForName(TransliteratingASCIIProvider.ASCII_PLAIN_CHARSET);
+    assertEquals("a?b", transliterate(cs, "a\rb"));
+  }
+
+  @Test
+  void asciiPlainNormalisesCRLF() {
+    // With IGNORE action, CR is silently dropped so CRLF becomes LF.
+    final Charset cs = provider.charsetForName(TransliteratingASCIIProvider.ASCII_PLAIN_CHARSET);
+    final java.nio.charset.CharsetEncoder enc =
+        cs.newEncoder().onUnmappableCharacter(java.nio.charset.CodingErrorAction.IGNORE);
+    try {
+      final java.nio.ByteBuffer out = enc.encode(java.nio.CharBuffer.wrap("a\r\nb"));
+      assertEquals("a\nb", new String(out.array(), 0, out.limit(), StandardCharsets.US_ASCII));
+    } catch (java.nio.charset.CharacterCodingException e) {
+      throw new AssertionError(e);
+    }
+  }
+
+  @Test
+  void asciiFormattedPassesPrintableAndTab() {
+    final Charset cs =
+        provider.charsetForName(TransliteratingASCIIProvider.ASCII_FORMATTED_CHARSET);
+    assertEquals("a\tb", transliterate(cs, "a\tb"));
+  }
+
+  @Test
+  void asciiFormattedAllowsNewline() {
+    final Charset cs =
+        provider.charsetForName(TransliteratingASCIIProvider.ASCII_FORMATTED_CHARSET);
+    assertEquals("a\nb", transliterate(cs, "a\nb"));
+  }
+
+  @Test
+  void asciiFormattedRejectsCarriageReturn() {
+    final Charset cs =
+        provider.charsetForName(TransliteratingASCIIProvider.ASCII_FORMATTED_CHARSET);
+    assertEquals("a?b", transliterate(cs, "a\rb"));
+  }
+
+  @Test
+  void asciiFormattedDoesNotContainUsAscii() {
+    // CR is unmappable, so the charset does not contain all of US-ASCII.
+    final Charset cs =
+        provider.charsetForName(TransliteratingASCIIProvider.ASCII_FORMATTED_CHARSET);
+    assertFalse(cs.contains(StandardCharsets.US_ASCII));
   }
 
   @Test

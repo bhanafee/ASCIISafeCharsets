@@ -14,15 +14,20 @@ import java.util.function.IntFunction;
 
 /**
  * A {@link CharsetProvider} that supplies ASCII-safe character sets for encoding Unicode text. This
- * provider offers four distinct character set implementations:
+ * provider offers five distinct character set implementations:
  *
  * <dl>
  *   <dt>ASCII-Printable
  *   <dd>Strict printable ASCII: allows 0x20 through 0x7E inclusive. Control characters, including
- *       newlines, are reported as unmappable.
+ *       tabs and newlines, are reported as unmappable.
  *   <dt>ASCII-Plain
- *   <dd>Printable ASCII with newline support: includes linefeed (0x0A) and carriage return (0x0D),
- *       normalising CRLF to LF. All other control characters are unmappable.
+ *   <dd>Printable ASCII with newline support: linefeed (0x0A) passes through; carriage return
+ *       (0x0D) is unmappable so CRLF normalises to LF under the {@code IGNORE} error action. All
+ *       other control characters are unmappable.
+ *   <dt>ASCII-Formatted
+ *   <dd>Printable ASCII with tab and newline support: tab (0x09) and linefeed (0x0A) pass through;
+ *       carriage return (0x0D) is unmappable so CRLF normalises to LF under the {@code IGNORE}
+ *       error action. All other control characters are unmappable.
  *   <dt>X-Transliterating
  *   <dd>Aggressive Unicode-to-ASCII transliteration using NFKD decomposition and character-name
  *       lookup. Output length may vary (one Unicode character may produce multiple ASCII bytes).
@@ -40,6 +45,9 @@ public class TransliteratingASCIIProvider extends CharsetProvider {
   /** Canonical name for the printable ASCII character set with newline support. */
   public static final String ASCII_PLAIN_CHARSET = "ASCII-Plain";
 
+  /** Canonical name for the printable ASCII character set with tab and newline support. */
+  public static final String ASCII_FORMATTED_CHARSET = "ASCII-Formatted";
+
   /** Canonical name for the transliterating character set. */
   public static final String TRANSLITERATING_CHARSET = "X-Transliterating";
 
@@ -52,6 +60,8 @@ public class TransliteratingASCIIProvider extends CharsetProvider {
   private Charset asciiPrintable;
 
   private Charset asciiPlain;
+
+  private Charset asciiFormatted;
 
   private Charset transliterating;
 
@@ -82,10 +92,22 @@ public class TransliteratingASCIIProvider extends CharsetProvider {
       final ASCIIFilter filter = new ASCIIFilter(Character.CONTROL);
       final Cache cache = new Cache(filter);
       cache.cache(0x0A, "\n");
-      cache.cache(0x0D, "\r");
+      cache.cache(0x0D, ""); // CR is unmappable; CRLF normalises to LF under IGNORE
       asciiPlain = new TransliteratingASCII(cache, ASCII_PLAIN_CHARSET);
     }
     return asciiPlain;
+  }
+
+  private Charset getAsciiFormatted() {
+    if (asciiFormatted == null) {
+      final ASCIIFilter filter = new ASCIIFilter(Character.CONTROL);
+      final Cache cache = new Cache(filter);
+      cache.cache(0x09, "\t");
+      cache.cache(0x0A, "\n");
+      cache.cache(0x0D, ""); // CR is unmappable; CRLF normalises to LF under IGNORE
+      asciiFormatted = new TransliteratingASCII(cache, ASCII_FORMATTED_CHARSET);
+    }
+    return asciiFormatted;
   }
 
   private Charset getTransliterating() {
@@ -112,8 +134,8 @@ public class TransliteratingASCIIProvider extends CharsetProvider {
 
   /**
    * Returns an iterator over all available character sets provided by this class. The available
-   * charsets are: ASCII-Printable, ASCII-Plain, X-Transliterating, and
-   * X-Transliterating-Single-Byte (ACH).
+   * charsets are: ASCII-Printable, ASCII-Plain, ASCII-Formatted, X-Transliterating, and
+   * X-Transliterating-Single-Byte.
    *
    * @return Iterator containing all supported character sets {@code @ThreadSafe} This method is
    *     thread-safe and uses lazy initialization
@@ -126,6 +148,7 @@ public class TransliteratingASCIIProvider extends CharsetProvider {
             Arrays.asList(
                 getAsciiPrintable(),
                 getAsciiPlain(),
+                getAsciiFormatted(),
                 getTransliterating(),
                 getTransliteratingSingleByte());
       }
@@ -139,6 +162,7 @@ public class TransliteratingASCIIProvider extends CharsetProvider {
    * <ul>
    *   <li>{@link #ASCII_PRINTABLE_CHARSET ASCII-Printable}
    *   <li>{@link #ASCII_PLAIN_CHARSET ASCII-Plain}
+   *   <li>{@link #ASCII_FORMATTED_CHARSET ASCII-Formatted}
    *   <li>{@link #TRANSLITERATING_CHARSET X-Transliterating}
    *   <li>{@link #TRANSLITERATING_SINGLE_BYTE_CHARSET X-Transliterating-Single-Byte} (alias: {@link
    *       #ACH_ALIAS ACH})
@@ -153,6 +177,7 @@ public class TransliteratingASCIIProvider extends CharsetProvider {
     return switch (charsetName) {
       case ASCII_PRINTABLE_CHARSET -> getAsciiPrintable();
       case ASCII_PLAIN_CHARSET -> getAsciiPlain();
+      case ASCII_FORMATTED_CHARSET -> getAsciiFormatted();
       case TRANSLITERATING_CHARSET -> getTransliterating();
       case TRANSLITERATING_SINGLE_BYTE_CHARSET, ACH_ALIAS -> getTransliteratingSingleByte();
       default -> null;
