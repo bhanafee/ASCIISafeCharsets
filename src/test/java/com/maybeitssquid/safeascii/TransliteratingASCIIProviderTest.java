@@ -35,8 +35,11 @@ class TransliteratingASCIIProviderTest {
   @ValueSource(
       strings = {
         TransliteratingASCIIProvider.ASCII_PRINTABLE_CHARSET,
+        TransliteratingASCIIProvider.ASCII_PRINTABLE_ALIAS,
         TransliteratingASCIIProvider.ASCII_PLAIN_CHARSET,
+        TransliteratingASCIIProvider.ASCII_PLAIN_ALIAS,
         TransliteratingASCIIProvider.ASCII_FORMATTED_CHARSET,
+        TransliteratingASCIIProvider.ASCII_FORMATTED_ALIAS,
         TransliteratingASCIIProvider.TRANSLITERATING_CHARSET,
         TransliteratingASCIIProvider.TRANSLITERATING_SINGLE_BYTE_CHARSET,
         TransliteratingASCIIProvider.ACH_ALIAS
@@ -50,6 +53,42 @@ class TransliteratingASCIIProviderTest {
   @Test
   void charsetForNameReturnsNullForUnknown() {
     assertNull(provider.charsetForName("does-not-exist"));
+  }
+
+  @Test
+  void asciiPrintableAliasResolvesToSameInstance() {
+    assertSame(
+        provider.charsetForName(TransliteratingASCIIProvider.ASCII_PRINTABLE_CHARSET),
+        provider.charsetForName(TransliteratingASCIIProvider.ASCII_PRINTABLE_ALIAS));
+    assertTrue(
+        provider
+            .charsetForName(TransliteratingASCIIProvider.ASCII_PRINTABLE_CHARSET)
+            .aliases()
+            .contains(TransliteratingASCIIProvider.ASCII_PRINTABLE_ALIAS));
+  }
+
+  @Test
+  void asciiPlainAliasResolvesToSameInstance() {
+    assertSame(
+        provider.charsetForName(TransliteratingASCIIProvider.ASCII_PLAIN_CHARSET),
+        provider.charsetForName(TransliteratingASCIIProvider.ASCII_PLAIN_ALIAS));
+    assertTrue(
+        provider
+            .charsetForName(TransliteratingASCIIProvider.ASCII_PLAIN_CHARSET)
+            .aliases()
+            .contains(TransliteratingASCIIProvider.ASCII_PLAIN_ALIAS));
+  }
+
+  @Test
+  void asciiFormattedAliasResolvesToSameInstance() {
+    assertSame(
+        provider.charsetForName(TransliteratingASCIIProvider.ASCII_FORMATTED_CHARSET),
+        provider.charsetForName(TransliteratingASCIIProvider.ASCII_FORMATTED_ALIAS));
+    assertTrue(
+        provider
+            .charsetForName(TransliteratingASCIIProvider.ASCII_FORMATTED_CHARSET)
+            .aliases()
+            .contains(TransliteratingASCIIProvider.ASCII_FORMATTED_ALIAS));
   }
 
   @Test

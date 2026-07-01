@@ -47,9 +47,9 @@ package if it is genuinely part of the public charset API. Pipeline unit tests l
 ### Charset layer
 
 - **`TransliteratingASCIIProvider`** — `CharsetProvider` SPI entry point in the exported package, registered via `src/main/resources/META-INF/services/java.nio.charset.spi.CharsetProvider` (classpath) and the `provides` directive in `module-info.java` (module path). Provides four charsets lazily:
-  - `ASCII-Printable` — strict printable ASCII (0x20–0x7E only, controls blocked)
-  - `ASCII-Plain` — same but allows LF; CR is unmappable so CRLF normalises to LF under `IGNORE`
-  - `ASCII-Formatted` — same as ASCII-Plain but also allows TAB (0x09)
+  - `X-ASCII-Printable` (alias `ASCII-Printable`) — strict printable ASCII (0x20–0x7E only, controls blocked)
+  - `X-ASCII-Plain` (alias `ASCII-Plain`) — same but allows LF; CR is unmappable so CRLF normalises to LF under `IGNORE`
+  - `X-ASCII-Formatted` (alias `ASCII-Formatted`) — same as X-ASCII-Plain but also allows TAB (0x09)
   - `X-Transliterating` — aggressive Unicode-to-ASCII transliteration
   - `X-Transliterating-Single-Byte` (alias `ACH`) — same but guarantees 1:1 character output
 - **`TransliteratingASCII`** — extends `java.nio.charset.Charset`. Takes an `IntFunction<CharSequence>` transliterator at construction; the encoder/decoder delegate all codepoint mapping to it.

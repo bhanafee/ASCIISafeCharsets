@@ -32,7 +32,7 @@ handle newline variants and control characters correctly for both plain and prin
 - **SPI-based**: registered as a `CharsetProvider`, so `Charset.forName("ASCII-Plain")` works
   without any code changes to existing `InputStreamReader` / `OutputStreamWriter` usage
 - **Safe replacement by default**: unexpected characters become `?` rather than throwing
-- **Whitespace control**: `ASCII-Plain` passes LF (CRLF normalises to LF); `ASCII-Formatted` additionally passes TAB
+- **Whitespace control**: `X-ASCII-Plain` passes LF (CRLF normalises to LF); `X-ASCII-Formatted` additionally passes TAB
 - **Unicode transliteration**: `X-Transliterating` maps accented letters, punctuation, and common
   Unicode symbols to ASCII equivalents using NFKD decomposition and name-based lookup
 - **Fixed-width mode**: `X-Transliterating-Single-Byte` (alias `ACH`) guarantees 1:1 character
@@ -81,9 +81,9 @@ flowchart TD
     Q1{"Need Unicode\ntransliteration?"}
     Q1 -->|No| Q2{"Need whitespace\nformatting?"}
     Q1 -->|Yes| Q3{"Need fixed-width\n1:1 output?"}
-    Q2 -->|None| AP["ASCII-Printable\nStrict: 0x20–0x7E only\nControls blocked"]
-    Q2 -->|LF only| APL["ASCII-Plain\nLF passes; CRLF → LF\nOther controls blocked"]
-    Q2 -->|TAB + LF| AF["ASCII-Formatted\nTAB and LF pass; CRLF → LF\nOther controls blocked"]
+    Q2 -->|None| AP["X-ASCII-Printable\nStrict: 0x20–0x7E only\nControls blocked"]
+    Q2 -->|LF only| APL["X-ASCII-Plain\nLF passes; CRLF → LF\nOther controls blocked"]
+    Q2 -->|TAB + LF| AF["X-ASCII-Formatted\nTAB and LF pass; CRLF → LF\nOther controls blocked"]
     Q3 -->|No| XT["X-Transliterating\nUnicode → ASCII via\ndecomposition + name lookup\nVariable-width output"]
     Q3 -->|Yes| XTSB["X-Transliterating-Single-Byte\nSame transliteration but\nrejects multi-char results\nGuarantees 1:1 mapping"]
 ```
@@ -91,9 +91,9 @@ flowchart TD
 All charsets are retrieved by name because the SPI provider is registered on the classpath:
 
 ```java
-Charset asciiPrintable = Charset.forName("ASCII-Printable");
-Charset asciiPlain     = Charset.forName("ASCII-Plain");
-Charset asciiFormatted = Charset.forName("ASCII-Formatted");
+Charset asciiPrintable = Charset.forName("X-ASCII-Printable");  // alias: ASCII-Printable
+Charset asciiPlain     = Charset.forName("X-ASCII-Plain");       // alias: ASCII-Plain
+Charset asciiFormatted = Charset.forName("X-ASCII-Formatted");   // alias: ASCII-Formatted
 Charset xliterate      = Charset.forName("X-Transliterating");
 Charset xliterateSB    = Charset.forName("X-Transliterating-Single-Byte");
 Charset ach            = Charset.forName("ACH");  // alias for X-Transliterating-Single-Byte
@@ -108,7 +108,7 @@ charsets add decomposition and name-based lookup stages:
 flowchart LR
     Input(["Unicode\ncodepoint"])
 
-    subgraph AP ["ASCII-Printable / ASCII-Plain / ASCII-Formatted"]
+    subgraph AP ["X-ASCII-Printable / X-ASCII-Plain / X-ASCII-Formatted"]
         direction LR
         CA["Cache"]
         FA["ASCIIFilter\nblock controls"]
@@ -217,7 +217,7 @@ classDiagram
 Although the strict charsets do not allow values below `0x20` or above `0x7F`, there are some
 exceptions:
 
-| Codepoint | Character | ASCII-Printable | ASCII-Plain | ASCII-Formatted | Notes |
+| Codepoint | Character | X-ASCII-Printable | X-ASCII-Plain | X-ASCII-Formatted | Notes |
 |---|---|---|---|---|---|
 | `0x09` | Tab | Blocked | Blocked | Allowed | Horizontal whitespace for alignment |
 | `0x0A` | Linefeed | Blocked | Allowed | Allowed | Common record separator |
@@ -263,8 +263,8 @@ replacement character and allow processing to continue, which is the default `Ch
 ```java
 InputStream bytesIn = new FileInputStream("input.txt");
 // Charset can be passed by name because it has a provider resource in the classpath.
-// ASCII-Plain allows LF and normalises CRLF to LF, suitable for line-oriented input.
-Reader reader = new InputStreamReader(bytesIn, "ASCII-Plain");
+// X-ASCII-Plain allows LF and normalises CRLF to LF, suitable for line-oriented input.
+Reader reader = new InputStreamReader(bytesIn, "X-ASCII-Plain");
 // Reader will replace unexpected bytes with the Unicode replacement character
 ```
 
@@ -278,7 +278,7 @@ characters in its decoder; bytes `0x80`–`0xFF` are always malformed.
 ```java
 InputStream bytesIn = new FileInputStream("input.ach");
 // Retrieve Charset by name because it has a provider resource in the classpath
-Charset cs = Charset.forName("ASCII-Printable");
+Charset cs = Charset.forName("X-ASCII-Printable");
 // Report both error kinds: high bytes (0x80-0xFF) are malformed, while blocked control
 // characters are unmappable. (newDecoder() already defaults both actions to REPORT; these
 // calls make the intent explicit rather than relying on that default.)
