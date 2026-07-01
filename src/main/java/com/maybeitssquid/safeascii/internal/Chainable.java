@@ -57,12 +57,13 @@ public abstract class Chainable implements IntFunction<CharSequence> {
   @Override
   public CharSequence apply(final int value) {
     final CharSequence result = process(value);
-    return switch (result.length()) {
+    final int len = result.length();
+    return switch (len) {
       case 0 -> "";
       case 1 -> delegate(result.charAt(0));
       default -> {
-        final StringBuilder builder = new StringBuilder(result.length());
-        for (int i = 0; i < result.length(); i++) {
+        final StringBuilder builder = new StringBuilder(len);
+        for (int i = 0; i < len; i++) {
           if (Character.isLowSurrogate(result.charAt(i))) {
             continue;
           }
