@@ -222,6 +222,20 @@ class NameTest extends AbstractChainableTest {
   }
 
   @Test
+  void byNameLatinCapitalLetter() {
+    // CIRCLED LATIN CAPITAL LETTER A (OTHER_SYMBOL) routes through byName()
+    final Name n = new Name();
+    assertEquals("A", n.byName(0x24B6).toString());
+  }
+
+  @Test
+  void byNameLatinSmallLetter() {
+    // CIRCLED LATIN SMALL LETTER A (OTHER_SYMBOL) routes through byName()
+    final Name n = new Name();
+    assertEquals("a", n.byName(0x24D0).toString());
+  }
+
+  @Test
   void byNameColonSignIsNotTreatedAsColon() {
     // The Colombian COLON SIGN currency symbol must not collapse to ':'.
     final Name name = new Name();

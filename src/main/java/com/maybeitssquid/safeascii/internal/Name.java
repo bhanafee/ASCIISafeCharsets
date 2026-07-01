@@ -307,9 +307,11 @@ public class Name extends Categorize {
   protected CharSequence byName(final int codepoint) {
     final String name = Character.getName(codepoint);
     if (name.contains("LATIN CAPITAL LETTER")) {
-      return uppercase(codepoint);
+      final Matcher m = latin.matcher(name);
+      return m.find() ? m.group("letter") : "";
     } else if (name.contains("LATIN SMALL LETTER")) {
-      return lowercase(codepoint);
+      final Matcher m = latin.matcher(name);
+      return m.find() ? m.group("letter").toLowerCase(Locale.ROOT) : "";
     } else if (name.contains("SOLIDUS") || name.contains("SLASH")) {
       return solidus(name, codepoint);
     } else if (name.contains("EQUAL")) {
