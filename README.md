@@ -333,7 +333,7 @@ Writer writer = new OutputStreamWriter(bytesOut, encoder);
 | Component | Version |
 |-----------|---------|
 | Java | 25 (toolchain; runs on 17+) |
-| Gradle | 9.5.1 |
+| Gradle | 9.6.1 |
 | JUnit | 6.1.0 |
 | JaCoCo | 0.8.14 |
 
