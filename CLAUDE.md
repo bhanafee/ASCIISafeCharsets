@@ -25,7 +25,36 @@ On Windows, use `gradlew.bat` (or `.\gradlew` in PowerShell).
 
 The build uses a Java 25 toolchain and compiles to Java 17 bytecode (`release = "17"`). CI tests on Java 17, 21, and 25 on every push/PR to `main`.
 
-Build versions are timestamped (`1.0.0-YYYYMMDDHHMMSS`); this is intentional for snapshot publishing.
+## Versioning and Releases
+
+Versions are derived from git tags using [`gradle-git-version`](https://github.com/palantir/gradle-git-version):
+
+- **On a tag** (e.g., `v1.0.0`) → version = `1.0.0`
+- **After a tag** → version = tag + distance + commit hash (e.g., `1.0.1-3-gABC1234` = 3 commits after v1.0.0)
+- **No tags yet** → version synthesized from git history (e.g., `0.0.1-dev-88-gXYZ`)
+
+**To create a release:**
+
+```bash
+# Ensure all commits are pushed
+git push origin main
+
+# Create and push the tag (triggers automatic version picking in build)
+git tag -a v1.0.0 -m "Release 1.0.0"
+git push origin v1.0.0
+
+# Build and publish
+./gradlew clean build publish
+```
+
+**To delete a release tag:**
+
+```bash
+git tag -d v1.0.0              # Delete locally
+git push origin :v1.0.0        # Delete from remote
+```
+
+Configuration cache is disabled (`org.gradle.configuration-cache=false`) to allow git invocation during the build.
 
 ## Architecture
 
