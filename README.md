@@ -344,6 +344,4 @@ Writer writer = new OutputStreamWriter(bytesOut, encoder);
 - [Code of Conduct](https://bhanafee.github.io/ASCIISafeCharsets/CODE_OF_CONDUCT.html)
 - [Claude Code Guidance](https://bhanafee.github.io/ASCIISafeCharsets/CLAUDE.html)
 
----
-
-**License:** [![Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
