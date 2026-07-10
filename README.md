@@ -1,7 +1,5 @@
 # ASCII-safe Charsets
 
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-
 A Java `Charset` SPI provider that encodes Unicode text into ASCII-safe subsets.
 Rather than simply rejecting non-ASCII input, the transliterating variants map common Unicode
 characters — accented letters, curly quotes, em-dashes — to their nearest ASCII equivalents,
@@ -343,6 +341,9 @@ Writer writer = new OutputStreamWriter(bytesOut, encoder);
 - [Javadoc](https://bhanafee.github.io/ASCIISafeCharsets/javadoc/)
 - [Test Results](https://bhanafee.github.io/ASCIISafeCharsets/tests/)
 - [Coverage Report](https://bhanafee.github.io/ASCIISafeCharsets/coverage/)
-- [Apache 2.0 License](https://bhanafee.github.io/ASCIISafeCharsets/LICENSE)
 - [Code of Conduct](https://bhanafee.github.io/ASCIISafeCharsets/CODE_OF_CONDUCT.html)
 - [Claude Code Guidance](https://bhanafee.github.io/ASCIISafeCharsets/CLAUDE.html)
+
+---
+
+**License:** [![Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
