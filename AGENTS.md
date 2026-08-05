@@ -10,16 +10,28 @@ ASCII subsets rather than simply rejecting non-ASCII input. Published to GitHub 
 
 ## Commands
 
+**Build and test:**
 ```bash
-./gradlew build                   # compile, test, spotless check
-./gradlew test                    # run tests
-./gradlew test --tests "..."      # run a single test class
+./gradlew build              # compile, test, spotless check
+./gradlew test               # run all tests
+./gradlew test --tests "*CacheTest"           # run tests by class name
+./gradlew test --tests "*CacheTest.test*"     # run tests by method pattern
+```
+
+**Code quality:**
+```bash
 ./gradlew spotlessApply           # auto-format (required before commit)
-./gradlew javadoc                 # generate Javadoc
 ./gradlew dependencyCheckAnalyze  # OWASP vulnerability scan (slow; fails at CVSS ≥ 7)
 ```
 
+**External dependencies:** Standalone library; no runtime dependencies beyond Java.
+
 Build uses Java 25 toolchain, compiles to Java 17 bytecode (`release = "17"`). CI tests on Java 17, 21, and 25.
+
+## Key Entry Points
+
+- **`TransliteratingASCIIProvider`** — main `CharsetProvider` SPI entry point; provides charset instances
+- **`Charset.forName("X-Transliterating")`** — retrieve a charset by name (registered via SPI)
 
 ## Versioning and Releases
 
