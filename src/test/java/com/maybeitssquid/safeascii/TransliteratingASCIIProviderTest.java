@@ -12,6 +12,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -53,6 +57,20 @@ class TransliteratingASCIIProviderTest {
   @Test
   void charsetForNameReturnsNullForUnknown() {
     assertNull(provider.charsetForName("does-not-exist"));
+  }
+
+  @ValueSource(
+      strings = {
+        "x-ascii-printable",
+        "Ascii-Plain",
+        "x-ASCII-formatted",
+        "x-TRANSLITERATING",
+        "x-transliterating-single-byte",
+        "ach"
+      })
+  @ParameterizedTest
+  void charsetForNameIgnoresAsciiLetterCase(final String name) {
+    assertNotNull(provider.charsetForName(name));
   }
 
   @Test
@@ -132,6 +150,47 @@ class TransliteratingASCIIProviderTest {
     final Charset fromLookup =
         provider.charsetForName(TransliteratingASCIIProvider.ASCII_PRINTABLE_CHARSET);
     assertSame(fromLookup, fromIterator);
+  }
+
+  @Test
+  void spiDiscoveryResolvesEveryCanonicalNameAndAlias() {
+    final Iterator<Charset> charsets = provider.charsets();
+    while (charsets.hasNext()) {
+      final Charset charset = charsets.next();
+      assertSame(charset, Charset.forName(charset.name()));
+      for (String alias : charset.aliases()) {
+        assertSame(charset, Charset.forName(alias));
+      }
+    }
+  }
+
+  @Test
+  void concurrentLookupAndEncodingUseTheSameInitializedCharsets() throws Exception {
+    final ExecutorService executor = Executors.newFixedThreadPool(8);
+    try {
+      final List<Callable<Charset>> tasks = new ArrayList<>();
+      for (int task = 0; task < 32; task++) {
+        tasks.add(
+            () -> {
+              Charset resolved = null;
+              for (int iteration = 0; iteration < 200; iteration++) {
+                resolved = provider.charsetForName("x-transliterating");
+                assertEquals("cafe rad/s2", transliterate(resolved, "café ㎯"));
+                assertSame(
+                    provider.charsetForName("ACH"),
+                    provider.charsetForName("x-transliterating-single-byte"));
+              }
+              return resolved;
+            });
+      }
+      final List<Future<Charset>> results = executor.invokeAll(tasks);
+      final Charset expected = results.get(0).get();
+      for (Future<Charset> result : results) {
+        assertSame(expected, result.get());
+      }
+    } finally {
+      executor.shutdownNow();
+    }
   }
 
   // ----- end-to-end transliteration through each charset -----

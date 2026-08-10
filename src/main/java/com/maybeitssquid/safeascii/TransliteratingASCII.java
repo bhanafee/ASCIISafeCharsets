@@ -5,6 +5,7 @@ import static com.maybeitssquid.safeascii.internal.Chainable.ASCII;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.*;
+import java.util.Objects;
 import java.util.function.IntFunction;
 
 /**
@@ -42,7 +43,7 @@ public class TransliteratingASCII extends Charset {
 
   /**
    * Initializes a new charset with the given canonical name and alias set, declaring the maximum
-   * number of ASCII bytes any single input character may transliterate to.
+   * number of ASCII bytes any single input code point may transliterate to.
    *
    * <p>The bound is what {@link java.nio.charset.CharsetEncoder#maxBytesPerChar()} reports, so it
    * must not be underestimated: {@link String#getBytes(Charset)} sizes its output buffer from it
@@ -51,7 +52,7 @@ public class TransliteratingASCII extends Charset {
    *
    * @param transliterator The function to convert a code point into zero or more characters
    * @param maxBytesPerChar The largest number of ASCII bytes the transliterator emits for one input
-   *     character; must be {@code >= 1}
+   *     code point; must be finite and {@code >= 1}
    * @param names The canonical name of this charset followed by any aliases
    */
   protected TransliteratingASCII(
@@ -59,7 +60,11 @@ public class TransliteratingASCII extends Charset {
       final float maxBytesPerChar,
       final String... names) {
     super(names[0], aliases(names));
-    this.transliterator = transliterator;
+    this.transliterator = Objects.requireNonNull(transliterator, "transliterator");
+    if (!Float.isFinite(maxBytesPerChar) || maxBytesPerChar < 1F) {
+      throw new IllegalArgumentException(
+          "maxBytesPerChar must be finite and at least 1: " + maxBytesPerChar);
+    }
     this.maxBytesPerChar = maxBytesPerChar;
   }
 
@@ -177,11 +182,13 @@ public class TransliteratingASCII extends Charset {
   /**
    * Creates an encoder that maps Unicode code points to ASCII bytes using the transliterator.
    *
-   * <p>Behavior: the transliterator is applied per code point. If the result is empty, the input is
-   * reported unmappable for its length (1 or 2 for supplementary code points). If any resulting
-   * character is > 0x7F the input is unmappable. If the output buffer lacks space the encoder
-   * returns {@link java.nio.charset.CoderResult#OVERFLOW}. Valid transliterations are written as
-   * their low-7-bit byte values.
+   * <p>Behavior: valid UTF-16 input is passed to the transliterator one Unicode code point at a
+   * time. Isolated surrogate code units are reported as malformed before the transliterator runs.
+   * If the result is empty, the input is reported unmappable for its length (1 or 2 for
+   * supplementary code points). If any resulting character is > 0x7F the input is unmappable. If
+   * the output buffer lacks space the encoder returns {@link
+   * java.nio.charset.CoderResult#OVERFLOW}. Valid transliterations are written as their low-7-bit
+   * byte values.
    *
    * <p>The encoder consumes the correct input length for supplementary code points and uses {@code
    * '?'} as the replacement byte for unmappable input.
@@ -194,8 +201,26 @@ public class TransliteratingASCII extends Charset {
       @Override
       protected CoderResult encodeLoop(final CharBuffer in, final ByteBuffer out) {
         while (in.hasRemaining()) {
-          final int codepoint = Character.codePointAt(in, 0);
-          final int length = Character.isSupplementaryCodePoint(codepoint) ? 2 : 1;
+          final int position = in.position();
+          final char first = in.get(position);
+          final int codepoint;
+          final int length;
+          if (Character.isHighSurrogate(first)) {
+            if (in.remaining() < 2) {
+              return CoderResult.UNDERFLOW;
+            }
+            final char second = in.get(position + 1);
+            if (!Character.isLowSurrogate(second)) {
+              return CoderResult.malformedForLength(1);
+            }
+            codepoint = Character.toCodePoint(first, second);
+            length = 2;
+          } else if (Character.isLowSurrogate(first)) {
+            return CoderResult.malformedForLength(1);
+          } else {
+            codepoint = first;
+            length = 1;
+          }
 
           final CharSequence transliterated = transliterator.apply(codepoint);
           if (transliterated == null || transliterated.isEmpty()) {

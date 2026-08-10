@@ -23,14 +23,15 @@ from mainframe sources. Java's standard charsets handle this poorly: they either
 record structure that downstream processing depends on.
 
 This library provides charsets that transliterate rather than reject or blindly replace, and that
-handle newline variants and control characters correctly for both plain and printable ASCII targets.
+apply explicit control-character policies for plain and printable ASCII targets.
 
 ## Features
 
 - **SPI-based**: registered as a `CharsetProvider`, so `Charset.forName("ASCII-Plain")` works
   without any code changes to existing `InputStreamReader` / `OutputStreamWriter` usage
 - **Safe replacement by default**: unexpected characters become `?` rather than throwing
-- **Whitespace control**: `X-ASCII-Plain` passes LF (CRLF normalises to LF); `X-ASCII-Formatted` additionally passes TAB
+- **Whitespace control**: `X-ASCII-Plain` passes LF and `X-ASCII-Formatted` additionally passes
+  TAB; CR is unmappable (and is omitted only when the encoder uses `IGNORE`)
 - **Unicode transliteration**: `X-Transliterating` maps accented letters, punctuation, and common
   Unicode symbols to ASCII equivalents using NFKD decomposition and name-based lookup
 - **Fixed-width mode**: `X-Transliterating-Single-Byte` (alias `ACH`) guarantees 1:1 character
@@ -71,7 +72,7 @@ Or build from source:
 
 ## Charset Variants
 
-Four charsets are provided. Choose based on whether you need newline support and whether you need
+Five charsets are provided. Choose based on whether you need newline support and whether you need
 Unicode transliteration:
 
 ```mermaid
@@ -80,8 +81,8 @@ flowchart TD
     Q1 -->|No| Q2{"Need whitespace\nformatting?"}
     Q1 -->|Yes| Q3{"Need fixed-width\n1:1 output?"}
     Q2 -->|None| AP["X-ASCII-Printable\nStrict: 0x20–0x7E only\nControls blocked"]
-    Q2 -->|LF only| APL["X-ASCII-Plain\nLF passes; CRLF → LF\nOther controls blocked"]
-    Q2 -->|TAB + LF| AF["X-ASCII-Formatted\nTAB and LF pass; CRLF → LF\nOther controls blocked"]
+    Q2 -->|LF only| APL["X-ASCII-Plain\nLF passes; CR unmappable\nOther controls blocked"]
+    Q2 -->|TAB + LF| AF["X-ASCII-Formatted\nTAB and LF pass; CR unmappable\nOther controls blocked"]
     Q3 -->|No| XT["X-Transliterating\nUnicode → ASCII via\ndecomposition + name lookup\nVariable-width output"]
     Q3 -->|Yes| XTSB["X-Transliterating-Single-Byte\nSame transliteration but\nrejects multi-char results\nGuarantees 1:1 mapping"]
 ```
@@ -219,16 +220,13 @@ exceptions:
 |---|---|---|---|---|---|
 | `0x09` | Tab | Blocked | Blocked | Allowed | Horizontal whitespace for alignment |
 | `0x0A` | Linefeed | Blocked | Allowed | Allowed | Common record separator |
-| `0x0D` | Carriage return | Blocked | Normalised to `""` | Normalised to `""` | CRLF → LF under `IGNORE`; `canEncode(0x0D)` returns `false` |
+| `0x0D` | Carriage return | Blocked | Unmappable | Unmappable | With encoder action `IGNORE`, CR is omitted, so CRLF encodes as LF |
 | `0x7F` | DEL | Blocked | Blocked | Blocked | Unprintable control character |
-| `0x85` | NEL | Encoded as LF | Encoded as LF | Encoded as LF | EBCDIC newline; safe to encode, unsafe to decode (see below) |
+| `0x85` | NEL | Blocked | Blocked | Blocked | Not an ASCII byte; decoding it is malformed |
 
-The `CRLF` sequence is encoded and decoded as `LF` on all platforms.
-
-`0x85` (NEL, the EBCDIC newline) is encoded as a linefeed because the character is unambiguously
-a Unicode newline. Decoding a `0x85` byte is not safe: in UTF-8 it would be a continuation byte
-of a multibyte sequence; in Windows-1252 it is a horizontal ellipsis (…); in ISO-8859-1 it is
-undefined. The decoder therefore does not map `0x85`.
+CRLF is not intrinsically normalized: CR is an unmappable input character. It becomes LF only when
+an encoder is explicitly configured to ignore unmappable input. Decoders do not infer or normalize
+multi-byte newline sequences; they validate each byte independently.
 
 ## Disallowed character handling
 
@@ -261,7 +259,7 @@ replacement character and allow processing to continue, which is the default `Ch
 ```java
 InputStream bytesIn = new FileInputStream("input.txt");
 // Charset can be passed by name because it has a provider resource in the classpath.
-// X-ASCII-Plain allows LF and normalises CRLF to LF, suitable for line-oriented input.
+// X-ASCII-Plain allows LF. CR is unmappable, so choose an error action deliberately.
 Reader reader = new InputStreamReader(bytesIn, "X-ASCII-Plain");
 // Reader will replace unexpected bytes with the Unicode replacement character
 ```

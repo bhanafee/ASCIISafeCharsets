@@ -1,7 +1,8 @@
 package com.maybeitssquid.safeascii.internal;
 
 import java.util.HashMap;
-import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.function.IntFunction;
 
 /**
@@ -12,16 +13,20 @@ import java.util.function.IntFunction;
  * inputs. It employs a hybrid storage strategy:
  *
  * <ul>
- *   <li>A direct array is used for fast lookup of ASCII characters.
- *   <li>A {@link HashMap} is used for all other Unicode codepoints.
+ *   <li>A direct array is used for fast, thread-safe lookup of ASCII characters.
+ *   <li>A bounded {@link HashMap} is used for all other codepoints.
  * </ul>
  *
- * This structure ensures minimal overhead for common ASCII characters while supporting the full
- * Unicode range.
+ * This structure ensures minimal overhead for common ASCII characters while limiting memory used by
+ * arbitrary non-ASCII input. Once the non-ASCII cache reaches {@link #MAX_NON_ASCII_ENTRIES}, later
+ * values are processed but not retained.
  */
 public class Cache extends Chainable {
-  private final CharSequence[] ascii = new CharSequence[ASCII];
-  private final Map<Integer, CharSequence> cache = new HashMap<>();
+  /** Maximum number of non-ASCII mappings retained by one pipeline. */
+  public static final int MAX_NON_ASCII_ENTRIES = 4_096;
+
+  private final AtomicReferenceArray<CharSequence> ascii = new AtomicReferenceArray<>(ASCII);
+  private final HashMap<Integer, CharSequence> cache = new HashMap<>();
 
   /**
    * Creates a new Cache instance.
@@ -39,10 +44,15 @@ public class Cache extends Chainable {
    * @param value the processed string value to associate with the codepoint
    */
   public void cache(final int codepoint, final CharSequence value) {
-    if (codepoint < ASCII) {
-      ascii[codepoint] = value;
+    Objects.requireNonNull(value, "value");
+    if (codepoint >= 0 && codepoint < ASCII) {
+      ascii.set(codepoint, value);
     } else {
-      cache.put(codepoint, value);
+      synchronized (cache) {
+        if (cache.containsKey(codepoint) || cache.size() < MAX_NON_ASCII_ENTRIES) {
+          cache.put(codepoint, value);
+        }
+      }
     }
   }
 
@@ -54,7 +64,12 @@ public class Cache extends Chainable {
    */
   @Override
   protected CharSequence process(final int codepoint) {
-    return codepoint < ASCII ? ascii[codepoint] : cache.get(codepoint);
+    if (codepoint >= 0 && codepoint < ASCII) {
+      return ascii.get(codepoint);
+    }
+    synchronized (cache) {
+      return cache.get(codepoint);
+    }
   }
 
   /**
@@ -68,13 +83,34 @@ public class Cache extends Chainable {
    */
   @Override
   public CharSequence apply(final int value) {
-    final CharSequence cached = process(value);
-    if (cached == null) {
+    if (value >= 0 && value < ASCII) {
+      final CharSequence cached = ascii.get(value);
+      if (cached != null) {
+        return cached;
+      }
+      synchronized (ascii) {
+        final CharSequence synchronizedCached = ascii.get(value);
+        if (synchronizedCached != null) {
+          return synchronizedCached;
+        }
+        final CharSequence result = delegate(value);
+        if (result != null) {
+          ascii.set(value, result);
+        }
+        return result;
+      }
+    }
+
+    synchronized (cache) {
+      final CharSequence cached = cache.get(value);
+      if (cached != null) {
+        return cached;
+      }
       final CharSequence result = delegate(value);
-      cache(value, result);
+      if (result != null && cache.size() < MAX_NON_ASCII_ENTRIES) {
+        cache.put(value, result);
+      }
       return result;
-    } else {
-      return cached;
     }
   }
 }

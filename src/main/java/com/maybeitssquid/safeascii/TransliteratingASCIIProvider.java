@@ -7,9 +7,9 @@ import com.maybeitssquid.safeascii.internal.Name;
 import com.maybeitssquid.safeascii.internal.SingleCharacterFilter;
 import java.nio.charset.Charset;
 import java.nio.charset.spi.CharsetProvider;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.IntFunction;
 
 /**
@@ -66,81 +66,60 @@ public class TransliteratingASCIIProvider extends CharsetProvider {
   /** ACH alias for the single-byte transliterating character set. */
   public static final String ACH_ALIAS = "ACH";
 
-  private Charset asciiPrintable;
-
-  private Charset asciiPlain;
-
-  private Charset asciiFormatted;
-
-  private Charset transliterating;
-
-  private Charset transliteratingSingleByte;
-
-  private List<Charset> charsets;
+  private static final List<Charset> CHARSETS =
+      List.of(
+          asciiPrintable(),
+          asciiPlain(),
+          asciiFormatted(),
+          transliterating(),
+          transliteratingSingleByte());
 
   /**
    * Creates a new TransliteratingASCIIProvider instance.
    *
-   * <p>This provider will lazily initialize the available character sets upon the first request.
+   * <p>The available character sets are initialized once and safely shared by every provider
+   * instance.
    */
   public TransliteratingASCIIProvider() {
     // Default constructor
   }
 
-  private Charset getAsciiPrintable() {
-    if (asciiPrintable == null) {
-      final ASCIIFilter filter = new ASCIIFilter(Character.CONTROL);
-      final Cache transliterator = new Cache(filter);
-      asciiPrintable =
-          new TransliteratingASCII(transliterator, ASCII_PRINTABLE_CHARSET, ASCII_PRINTABLE_ALIAS);
-    }
-    return asciiPrintable;
+  private static Charset asciiPrintable() {
+    final ASCIIFilter filter = new ASCIIFilter(Character.CONTROL);
+    final Cache transliterator = new Cache(filter);
+    return new TransliteratingASCII(transliterator, ASCII_PRINTABLE_CHARSET, ASCII_PRINTABLE_ALIAS);
   }
 
-  private Charset getAsciiPlain() {
-    if (asciiPlain == null) {
-      final ASCIIFilter filter = new ASCIIFilter(Character.CONTROL);
-      final Cache cache = new Cache(filter);
-      cache.cache(0x0A, "\n");
-      cache.cache(0x0D, ""); // CR is unmappable; CRLF normalises to LF under IGNORE
-      asciiPlain = new TransliteratingASCII(cache, ASCII_PLAIN_CHARSET, ASCII_PLAIN_ALIAS);
-    }
-    return asciiPlain;
+  private static Charset asciiPlain() {
+    final ASCIIFilter filter = new ASCIIFilter(Character.CONTROL);
+    final Cache cache = new Cache(filter);
+    cache.cache(0x0A, "\n");
+    cache.cache(0x0D, ""); // CR is unmappable; CRLF normalises to LF under IGNORE
+    return new TransliteratingASCII(cache, ASCII_PLAIN_CHARSET, ASCII_PLAIN_ALIAS);
   }
 
-  private Charset getAsciiFormatted() {
-    if (asciiFormatted == null) {
-      final ASCIIFilter filter = new ASCIIFilter(Character.CONTROL);
-      final Cache cache = new Cache(filter);
-      cache.cache(0x09, "\t");
-      cache.cache(0x0A, "\n");
-      cache.cache(0x0D, ""); // CR is unmappable; CRLF normalises to LF under IGNORE
-      asciiFormatted =
-          new TransliteratingASCII(cache, ASCII_FORMATTED_CHARSET, ASCII_FORMATTED_ALIAS);
-    }
-    return asciiFormatted;
+  private static Charset asciiFormatted() {
+    final ASCIIFilter filter = new ASCIIFilter(Character.CONTROL);
+    final Cache cache = new Cache(filter);
+    cache.cache(0x09, "\t");
+    cache.cache(0x0A, "\n");
+    cache.cache(0x0D, ""); // CR is unmappable; CRLF normalises to LF under IGNORE
+    return new TransliteratingASCII(cache, ASCII_FORMATTED_CHARSET, ASCII_FORMATTED_ALIAS);
   }
 
-  private Charset getTransliterating() {
-    if (transliterating == null) {
-      final ASCIIFilter filter = new ASCIIFilter();
-      final IntFunction<CharSequence> transliterator = new Decompose(new Name(filter));
-      final Cache cache = new Cache(transliterator);
-      transliterating = new TransliteratingASCII(cache, TRANSLITERATING_CHARSET);
-    }
-    return transliterating;
+  private static Charset transliterating() {
+    final ASCIIFilter filter = new ASCIIFilter();
+    final IntFunction<CharSequence> transliterator = new Decompose(new Name(filter));
+    final Cache cache = new Cache(transliterator);
+    return new TransliteratingASCII(cache, TRANSLITERATING_CHARSET);
   }
 
-  private Charset getTransliteratingSingleByte() {
-    if (transliteratingSingleByte == null) {
-      final ASCIIFilter filter = new ASCIIFilter();
-      final IntFunction<CharSequence> transliterator = new Decompose(new Name(filter));
-      final SingleCharacterFilter lengthPreserving = new SingleCharacterFilter(transliterator);
-      final Cache cache = new Cache(lengthPreserving);
-      transliteratingSingleByte =
-          new TransliteratingASCII(cache, TRANSLITERATING_SINGLE_BYTE_CHARSET, ACH_ALIAS);
-    }
-    return transliteratingSingleByte;
+  private static Charset transliteratingSingleByte() {
+    final ASCIIFilter filter = new ASCIIFilter();
+    final IntFunction<CharSequence> transliterator = new Decompose(new Name(filter));
+    final SingleCharacterFilter lengthPreserving = new SingleCharacterFilter(transliterator);
+    final Cache cache = new Cache(lengthPreserving);
+    return new TransliteratingASCII(cache, TRANSLITERATING_SINGLE_BYTE_CHARSET, ACH_ALIAS);
   }
 
   /**
@@ -153,18 +132,7 @@ public class TransliteratingASCIIProvider extends CharsetProvider {
    */
   @Override
   public Iterator<Charset> charsets() {
-    synchronized (this) {
-      if (charsets == null) {
-        charsets =
-            Arrays.asList(
-                getAsciiPrintable(),
-                getAsciiPlain(),
-                getAsciiFormatted(),
-                getTransliterating(),
-                getTransliteratingSingleByte());
-      }
-    }
-    return charsets.iterator();
+    return CHARSETS.iterator();
   }
 
   /**
@@ -187,13 +155,16 @@ public class TransliteratingASCIIProvider extends CharsetProvider {
    *     {@code @ThreadSafe} This method is thread-safe
    */
   @Override
-  public Charset charsetForName(String charsetName) {
-    return switch (charsetName) {
-      case ASCII_PRINTABLE_CHARSET, ASCII_PRINTABLE_ALIAS -> getAsciiPrintable();
-      case ASCII_PLAIN_CHARSET, ASCII_PLAIN_ALIAS -> getAsciiPlain();
-      case ASCII_FORMATTED_CHARSET, ASCII_FORMATTED_ALIAS -> getAsciiFormatted();
-      case TRANSLITERATING_CHARSET -> getTransliterating();
-      case TRANSLITERATING_SINGLE_BYTE_CHARSET, ACH_ALIAS -> getTransliteratingSingleByte();
+  public Charset charsetForName(final String charsetName) {
+    if (charsetName == null) {
+      return null;
+    }
+    return switch (charsetName.toUpperCase(Locale.ROOT)) {
+      case "X-ASCII-PRINTABLE", "ASCII-PRINTABLE" -> CHARSETS.get(0);
+      case "X-ASCII-PLAIN", "ASCII-PLAIN" -> CHARSETS.get(1);
+      case "X-ASCII-FORMATTED", "ASCII-FORMATTED" -> CHARSETS.get(2);
+      case "X-TRANSLITERATING" -> CHARSETS.get(3);
+      case "X-TRANSLITERATING-SINGLE-BYTE", "ACH" -> CHARSETS.get(4);
       default -> null;
     };
   }

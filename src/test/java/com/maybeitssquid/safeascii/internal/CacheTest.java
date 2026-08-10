@@ -1,7 +1,9 @@
 package com.maybeitssquid.safeascii.internal;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntFunction;
 import org.junit.jupiter.api.Test;
 
@@ -103,6 +105,36 @@ class CacheTest extends AbstractChainableTest {
     // Second call (cache hit with the null value)
     CharSequence cachedResult = cache.apply(codepoint);
     assertNull(cachedResult);
+  }
+
+  @Test
+  void applyCachesEmptyMappings() {
+    AtomicInteger calls = new AtomicInteger();
+    Cache cache =
+        new Cache(
+            value -> {
+              calls.incrementAndGet();
+              return "";
+            });
+
+    assertEquals("", cache.apply(0x00E6));
+    assertEquals("", cache.apply(0x00E6));
+    assertEquals(1, calls.get());
+  }
+
+  @Test
+  void nonAsciiCacheIsBounded() {
+    AtomicInteger calls = new AtomicInteger();
+    Cache cache = new Cache(value -> Integer.toString(calls.incrementAndGet()));
+
+    for (int value = 0; value < Cache.MAX_NON_ASCII_ENTRIES; value++) {
+      cache.apply(0x0100 + value);
+    }
+    CharSequence firstUncached = cache.apply(0x0100 + Cache.MAX_NON_ASCII_ENTRIES);
+    CharSequence secondUncached = cache.apply(0x0100 + Cache.MAX_NON_ASCII_ENTRIES);
+
+    assertEquals("4097", firstUncached);
+    assertEquals("4098", secondUncached);
   }
 
   @Test

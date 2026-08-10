@@ -3,6 +3,7 @@ package com.maybeitssquid.safeascii;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.maybeitssquid.safeascii.internal.Chainable;
@@ -162,6 +163,15 @@ class TransliteratingASCIITest {
   }
 
   @Test
+  void constructorRejectsInvalidMaxBytesPerChar() {
+    final IllegalArgumentException exception =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> new TransliteratingASCII(ASCII_IDENTITY, 0F, "InvalidMax"));
+    assertTrue(exception.getMessage().contains("0.0"));
+  }
+
+  @Test
   void getBytesHandlesExpansion() {
     // Regression: with an honest maxBytesPerChar, String.getBytes no longer overflows on expansion.
     final IntFunction<CharSequence> t = cp -> cp == 0x00E6 ? "ae" : ASCII_IDENTITY.apply(cp);
@@ -203,6 +213,59 @@ class TransliteratingASCIITest {
   void encodeReplacesUnmappable() {
     final byte[] out = "aéb".getBytes(charset(ASCII_IDENTITY, "Replace"));
     assertArrayEquals(new byte[] {'a', '?', 'b'}, out);
+  }
+
+  @Test
+  void encodeReportsLoneHighSurrogateAsMalformedBeforeTransliteration() {
+    final char highSurrogate = '\uD83D';
+    final IntFunction<CharSequence> mapsSurrogateToAscii =
+        cp -> cp == highSurrogate ? "X" : ASCII_IDENTITY.apply(cp);
+    final CoderResult result =
+        encodeReporting(
+            charset(mapsSurrogateToAscii, "HighSurrogate"), String.valueOf(highSurrogate));
+    assertTrue(result.isMalformed());
+    assertEquals(1, result.length());
+  }
+
+  @Test
+  void encodeReportsLoneLowSurrogateAsMalformedBeforeTransliteration() {
+    final char lowSurrogate = '\uDE00';
+    final IntFunction<CharSequence> mapsSurrogateToAscii =
+        cp -> cp == lowSurrogate ? "X" : ASCII_IDENTITY.apply(cp);
+    final CoderResult result =
+        encodeReporting(
+            charset(mapsSurrogateToAscii, "LowSurrogate"), String.valueOf(lowSurrogate));
+    assertTrue(result.isMalformed());
+    assertEquals(1, result.length());
+  }
+
+  @Test
+  void encodeDefersTrailingHighSurrogateUntilItsPairIsAvailable() {
+    final String emoji = new String(Character.toChars(0x1F600));
+    final CharsetEncoder encoder =
+        charset(
+                cp -> {
+                  if (cp == 0x1F600) {
+                    return "X";
+                  }
+                  return cp == '?' ? "?" : "";
+                },
+                "Chunked")
+            .newEncoder();
+    final CharBuffer input = CharBuffer.wrap(emoji);
+    input.limit(1);
+    final ByteBuffer output = ByteBuffer.allocate(2);
+
+    final CoderResult first = encoder.encode(input, output, false);
+    assertTrue(first.isUnderflow());
+    assertEquals(0, input.position());
+
+    input.limit(2);
+    final CoderResult second = encoder.encode(input, output, true);
+    assertTrue(second.isUnderflow());
+    assertEquals(2, input.position());
+    output.flip();
+    assertEquals((byte) 'X', output.get());
   }
 
   // ----- decoding -----
