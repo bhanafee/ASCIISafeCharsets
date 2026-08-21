@@ -13,7 +13,6 @@ junit = { strictly = "[5,)", prefer = "5.12.+" }
 
 [libraries]
 # Security patches - BouncyCastle (CVE-2026-5598 covers all prior bcprov/bcpg CVEs)
-patch-cve-2026-5598-bcpg = { module = "org.bouncycastle:bcpg-jdk18on", version = { strictly = "[1.84,)", prefer = "1.84" } }
 patch-cve-2026-5598-bcprov = { module = "org.bouncycastle:bcprov-jdk18on", version = { strictly = "[1.84,)", prefer = "1.84" } }
 
 # Security patches - Apache Commons
@@ -35,7 +34,7 @@ patch-cve-2026-54399 = { module = "org.apache.httpcomponents.core5:httpcore5", v
 patch-cve-2026-64607 = { module = "org.apache.httpcomponents.client5:httpclient5", version = { strictly = "[5.6.3,)", prefer = "5.6.3" } }
 
 [bundles]
-security-patches = ["patch-cve-2022-45868", "patch-cve-2025-4949", "patch-cve-2025-48734", "patch-cve-2025-48924", "patch-cve-2026-54399", "patch-cve-2026-54428", "patch-cve-2026-5598-bcpg", "patch-cve-2026-5598-bcprov", "patch-cve-2026-64607", "patch-ghsa-72hv-8253-57qq", "patch-ghsa-5jmj-h7xm-6q6v", "patch-ghsa-dcmj-56c4-q8dh"]
+security-patches = ["patch-cve-2022-45868", "patch-cve-2025-4949", "patch-cve-2025-48734", "patch-cve-2025-48924", "patch-cve-2026-54399", "patch-cve-2026-54428", "patch-cve-2026-5598-bcprov", "patch-cve-2026-64607", "patch-ghsa-72hv-8253-57qq", "patch-ghsa-5jmj-h7xm-6q6v", "patch-ghsa-dcmj-56c4-q8dh"]
 
 [plugins]
 git-version = { id = "com.palantir.git-version", version.ref = "git-version" }
