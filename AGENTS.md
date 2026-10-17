@@ -64,7 +64,7 @@ git tag -d v1.0.0              # Delete locally
 git push origin :v1.0.0        # Delete from remote
 ```
 
-Configuration cache is disabled (`org.gradle.configuration-cache=false`) to allow git invocation during the build.
+Configuration cache is enabled (`org.gradle.configuration-cache=true` in `gradle.properties`).
 
 ## Architecture
 
