@@ -115,11 +115,10 @@ class CategorizeTest extends AbstractChainableTest {
   void applyASCIIOptimization() {
     final String[] result = new String[] {"default"};
     Categorize categorize =
-        new Categorize(
-            value -> {
-              result[0] = "optimized";
-              return "optimized";
-            });
+        new Categorize(value -> {
+          result[0] = "optimized";
+          return "optimized";
+        });
     assertEquals("optimized", categorize.apply('A')); // ASCII character
     assertEquals("optimized", result[0]);
   }

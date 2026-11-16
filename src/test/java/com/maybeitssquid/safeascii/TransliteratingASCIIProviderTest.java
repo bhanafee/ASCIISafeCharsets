@@ -170,18 +170,17 @@ class TransliteratingASCIIProviderTest {
     try {
       final List<Callable<Charset>> tasks = new ArrayList<>();
       for (int task = 0; task < 32; task++) {
-        tasks.add(
-            () -> {
-              Charset resolved = null;
-              for (int iteration = 0; iteration < 200; iteration++) {
-                resolved = provider.charsetForName("x-transliterating");
-                assertEquals("cafe rad/s2", transliterate(resolved, "café ㎯"));
-                assertSame(
-                    provider.charsetForName("ACH"),
-                    provider.charsetForName("x-transliterating-single-byte"));
-              }
-              return resolved;
-            });
+        tasks.add(() -> {
+          Charset resolved = null;
+          for (int iteration = 0; iteration < 200; iteration++) {
+            resolved = provider.charsetForName("x-transliterating");
+            assertEquals("cafe rad/s2", transliterate(resolved, "café ㎯"));
+            assertSame(
+                provider.charsetForName("ACH"),
+                provider.charsetForName("x-transliterating-single-byte"));
+          }
+          return resolved;
+        });
       }
       final List<Future<Charset>> results = executor.invokeAll(tasks);
       final Charset expected = results.get(0).get();
