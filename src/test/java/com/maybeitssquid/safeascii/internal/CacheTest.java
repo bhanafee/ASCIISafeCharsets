@@ -111,11 +111,10 @@ class CacheTest extends AbstractChainableTest {
   void applyCachesEmptyMappings() {
     AtomicInteger calls = new AtomicInteger();
     Cache cache =
-        new Cache(
-            value -> {
-              calls.incrementAndGet();
-              return "";
-            });
+        new Cache(value -> {
+          calls.incrementAndGet();
+          return "";
+        });
 
     assertEquals("", cache.apply(0x00E6));
     assertEquals("", cache.apply(0x00E6));
